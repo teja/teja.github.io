@@ -1,0 +1,25 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.example.appifytest",
+    "sha256_cert_fingerprints":
+    ["51:9C:07:37:45:3F:03:8D:D5:CE:A8:75:42:96:A6:BC:35:7C:EC:90:F4:24:81:F7:3C:C0:CE:7E:2F:70:2A:62"]
+  }
+},
+{
+  "relation": ["delegate_permission/common.get_login_creds"],
+  "target": {
+    "namespace": "web",
+    "site": "https://teja.github.io"
+  }
+},
+{
+  "relation": ["delegate_permission/common.get_login_creds"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.example.appifytest",
+    "sha256_cert_fingerprints":
+    ["51:9C:07:37:45:3F:03:8D:D5:CE:A8:75:42:96:A6:BC:35:7C:EC:90:F4:24:81:F7:3C:C0:CE:7E:2F:70:2A:62"]
+  }
+}]
