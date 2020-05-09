@@ -1,0 +1,18 @@
+<html>
+<head>  
+<script>
+  function myFunction() {
+    var u = new URL(document.getElementById('urlfld').value);
+    if (u) {
+      location.href = u.toString();
+    } else {
+      alert("invalid url");
+    }
+  }
+</script>
+</head>
+<body>
+  <input style='width:800;' type='text' id='urlfld' value='https://www.facebook.com' ></input>
+  <button type='submit' onclick='myFunction();' value='submit' >submit </submit>
+</body>
+</html>
