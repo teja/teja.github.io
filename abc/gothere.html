@@ -1,0 +1,15 @@
+<html>
+  <head>
+    <title>Takes you there</title>
+    <script type='text/javascript'>
+      function gothere() {
+        let u = new URL(document.getElementById('inputurl').value);
+        window.location.href = u.toString();
+      }
+    </script>
+  </head>
+  <body>
+    <input type='text' placeholder='enter the url' id='inputurl' />
+    <button onclick='gothere();'>Go go go</button>
+  </body>
+</html>
