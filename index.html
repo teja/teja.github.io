@@ -1,6 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-8J9SW13QZ1"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+
+	  gtag('config', 'G-8J9SW13QZ1');
+	  function logevent(eventname) {
+	  	gtag("event", eventname, {}); 
+	  	window.location = "wip.html";
+	  }
+	</script>
+
 <title>W3.CSS Template</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -42,17 +55,17 @@ h1, h2, h3, h4, h5, h6 {
 
       <b> Pick from below options. </b>
       <div class="w3-row">
-      		<div class="w3-card w3-large">
+      		<div class="w3-card w3-large" onclick="logevent('e2e');"">
       			<p class="w3-padding-16 w3-center w3-black">
 	      		Walk me through.
 	    	  	</p>
 	      	</div>
-      		<div class="w3-card w3-large">
+      		<div class="w3-card w3-large" onclick="logevent('e2e');">
       			<p class="w3-padding-16 w3-center w3-black">
 	      		Upload images - Discover your foot type.
 		      	</p>
 	      	</div>
-      		<div class="w3-card w3-large">
+      		<div class="w3-card w3-large" onclick="logevent('e2e');">
       			<p class="w3-padding-16 w3-center w3-black">
 	      		Pick Symptoms - Gain Insights.
 		      	</p>
