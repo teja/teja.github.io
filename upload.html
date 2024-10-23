@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Detection with face-api.js</title>
+    <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@latest/dist/face-api.min.js"></script>
+    <!-- Import w3 css -->
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link href="/style.css" rel="stylesheet">
+    <script src="/photoedit.js"></script>
+</head>
+
+<body>
+    <div class="w3-nav-bar w3-teal">
+        <div class="w3-nav-item">
+            <h1 class="w3-padding">Passport Photo</h1>
+        </div>
+    </div>
+    <div class="custom-position">
+        <div id="input">
+            <div class="w3-container w3-left">
+                <!-- W3 title bar with title "Passport Photo"-->
+                <div class="w3-container w3-padding-16 w3-large">
+                    <b>Take a photograph ensuring the following</b>
+                </div>
+                <div class="w3-container">
+                    <ul class="w3-ul w3-left">
+                        <li class="w3-list-item">
+                            With white or offwhite background
+                        </li>
+                        <li class="w3-list-item">
+                            Do not wear glasses
+                        </li>
+                        <li class="w3-list-item">
+                            Do not smile
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="w3-container ">
+                <div class="w3-container image-upload w3-center w3-padding-16">
+                    <label for="imageUpload" class="w3-button">
+                        Upload Image
+                    </label>
+                    <input type="file" accept="image/*" id="imageUpload" />
+                </div>
+            </div>
+        </div>
+        <div id="output" style="display: none;">
+            <img id="inputImage" style="display:none;" />
+            <canvas id="outputedited" style="display:none;"></canvas>
+            <canvas id="resized"></canvas>
+            <div class="w3-container w3-padding-16 w3-center">
+                <div class="w3-button w3-teal" id="downloadimg">Download</div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Load models on page load
+        window.onload = loadModels;
+        document.getElementById('imageUpload').addEventListener('change', changelistener);
+        document.getElementById("downloadimg").addEventListener('click', downloadlistener);
+    </script>
+</body>
+
+</html>

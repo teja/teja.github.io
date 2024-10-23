@@ -1,0 +1,39 @@
+/* Add styles here */
+.wraptxt {
+    display: inline-block;
+}
+.custom-position {
+    position: fixed;
+    top: 30%;
+    left: 10%;
+    justify-content: center;
+    transform: translateX(-5%);
+    align-items: center;    /* Vertical centering */
+}
+/* For screens larger than 768px (e.g., desktop) */
+@media (min-width: 768px) {
+    .custom-position {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
+.image-upload input {
+    display: none;
+  }
+
+  /* Customize button style */
+  .image-upload label {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: teal;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  /* Hover effect for the button */
+  .image-upload label:hover {
+    background-color: #45a049;
+  }
