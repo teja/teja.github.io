@@ -184,6 +184,7 @@ function drawHorizontalLine(canvas, y, width, color) {
 // Example usage:
 
 let changelistener = (event) => {
+    gtag('event', 'imguploaded', {});
     const file = event.target.files[0];
     if (file) {
         const reader = new FileReader();
@@ -199,6 +200,7 @@ let changelistener = (event) => {
 };
 
 downloadlistener = function() {
+    gtag('event', 'downloaded', {});
     // Convert the canvas content to a data URL in JPG format
     var canvas = document.getElementById("outputedited");
     const imageData = canvas.toDataURL('image/jpeg', 1.0);  // 1.0 indicates the highest quality
@@ -212,4 +214,10 @@ downloadlistener = function() {
     
     // Trigger a click on the link to download the image
     link.click();
+    window.location.href = "/thankyou.html";
+};
+
+thankyoufeedback = function() {
+  document.getElementById("feedbackbox").style.display = "none";
+  document.getElementById("feedbackthanks").style.display = "block";
 };

@@ -3,19 +3,22 @@
 
 <head>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-8J9SW13QZ1"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    
+      gtag('config', 'G-8J9SW13QZ1');
+    </script>
 
-  gtag('config', 'G-8J9SW13QZ1');
-</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Passport Photo generator</title>
     <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@latest/dist/face-api.min.js"></script>
     <!-- Import w3 css -->
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
     <link href="/style.css" rel="stylesheet">
     <script src="/photoedit.js"></script>
 </head>
@@ -63,6 +66,7 @@
             <div class="w3-container w3-padding-16 w3-center">
                 <div class="w3-button w3-teal" id="downloadimg">Download</div>
             </div>
+		
             <div class="w3-large">
                 Note
             </div>
