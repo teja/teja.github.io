@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8J9SW13QZ1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    
+      gtag('config', 'G-8J9SW13QZ1');
+    </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thank you!</title>
+<!-- W3.CSS Stylesheet -->
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<!-- Google Material Icons -->
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<script src="/photoedit.js"></script>
+<style>
+  .feedback-card {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  .feedback-header {
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: #333;
+  }
+  .feedback-message {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 1.1rem;
+    color: #666;
+  }
+  .feedback-icons {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 20px;
+  }
+  .feedback-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 2.5rem;
+    cursor: pointer;
+    color: #757575;
+    transition: transform 0.2s, color 0.2s;
+  }
+  .feedback-button:hover {
+    transform: scale(1.1);
+  }
+  .thumb-up {
+    color: #4CAF50; /* Green color for thumbs up */
+  }
+  .thumb-down {
+    color: #F44336; /* Red color for thumbs down */
+  }
+  .button-label {
+    font-size: 0.9rem;
+    color: #555;
+    margin-top: 5px;
+  }
+</style>
+</head>
+<body>
+
+<div class="w3-card w3-round-large w3-white feedback-card">
+ <p class="feedback-message"> Thank you for using our service.<br /> The Image should be in your downloads. </p>
+</div>
+<div class="w3-card w3-round-large w3-white feedback-card" id="feedbackbox">
+  <div class="feedback-header">We Value Your Feedback</div>
+  <p class="feedback-message">Please let us know how we did.</p>
+  
+  <div class="feedback-icons">
+    <div class="feedback-button thumb-up" onclick="gtag('event', 'fb-happy', {}); thankyoufeedback();">
+      <span class="material-icons">thumb_up</span>
+      <span class="button-label">Good</span>
+    </div>
+    <div class="feedback-button thumb-down" onclick="gtag('event', 'fb-sad', {}); thankyoufeedback();">
+      <span class="material-icons">thumb_down</span>
+      <span class="button-label">Bad</span>
+    </div>
+  </div>
+</div>
+<div class="w3-card w3-round-large w3-white feedback-card" id="feedbackthanks" style="display: none;">
+  <p class="feedback-message">Thank you for the feedback!</p>
+</div>
+
+
+</body>
+</html>
