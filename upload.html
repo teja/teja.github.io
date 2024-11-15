@@ -66,7 +66,33 @@
             <div class="w3-container w3-padding-16 w3-center">
                 <div class="w3-button w3-teal" id="downloadimg">Download</div>
             </div>
-		
+            <form class="w3-container w3-padding-16 w3-center">
+                <button class="w3-button w3-teal" onclick="toggleForm('dimensionForm')">Change Photo and Paper Dimensions</button>
+                <div id="dimensionForm" style="display: none;">
+                    <label for="photoWidth">Photo Width:</label>
+                    <input type="number" id="photoWidth" value="2">
+                    <label for="photoHeight">Photo Height:</label>
+                    <input type="number" id="photoHeight" value="2"><br>
+                    <label for="photoUnits">Units:</label>
+                    <select id="photoUnits">
+                        <option value="inches">Inches</option>
+                        <option value="cm">Centimeters</option>
+                        <option value="mm">Millimeters</option>
+                    </select><br>
+                    <label for="paperWidth">Paper Width:</label>
+                    <input type="number" id="paperWidth" value="4">
+                    <label for="paperHeight">Paper Height:</label>
+                    <input type="number" id="paperHeight" value="6"><br>
+                    <label for="paperUnits">Units:</label>
+                    <select id="paperUnits">
+                        <option value="inches">Inches</option>
+                        <option value="cm">Centimeters</option>
+                        <option value="mm">Millimeters</option>
+                    </select><br>                                
+                </div>
+                <button class="w3-button w3-teal" onclick="UpdateAspectRatios(document.getElementById('photoWidth').value, document.getElementById('photoHeight').value, document.getElementById('paperWidth').value, document.getElementById('paperHeight').value)">Update</button>
+            </form>
+            
             <div class="w3-large">
                 Note
             </div>

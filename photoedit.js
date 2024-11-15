@@ -1,6 +1,12 @@
 function writemessage(msg) {
     document.getElementById("messages").innerHTML += msg + "<br>";
 }
+
+
+var facepositions = null;
+var croppedcanvas = null;
+var canvastodownload = null;
+
 async function loadModels() {
     const MODEL_URL = '/';
     console.log("nns loading");
@@ -13,6 +19,8 @@ async function loadModels() {
     }
     await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
     console.log("nns loaded");
+    croppedcanvas = document.createElement('canvas');
+    canvastodownload = document.createElement('canvas');
 }
 
 function getavg(pixelall) {
@@ -109,6 +117,73 @@ function top_of_head(canvas, top_head, center_head) {
     }
 }
 
+// function that takes the required width and height and crops original image to that size.
+function getcropdimensions(center, headtop, headbottom, width, height) {
+    let cropheight = Math.floor((headbottom - headtop) / .6);
+    let croptop = Math.floor(headtop - cropheight * .1);
+    let cropbottom = Math.floor(headbottom + cropheight * .3);
+    let aspectratio = width / height;
+    let cropwidth = Math.floor(cropheight * aspectratio);
+    let cropleft = center - cropwidth / 2;
+    let cropright = center + cropwidth / 2;
+    return [cropleft, croptop, cropwidth, cropheight];
+}
+
+function edittoaspectratio(inputcanvas, center, top, bottom, width, height, outputcanvas) {
+    let cropspec = getcropdimensions(center, top, bottom, width, height);
+    let cropleft = cropspec[0];
+    let croptop = cropspec[1];
+    let cropwidth = cropspec[2];
+    let cropheight = cropspec[3];
+    ctx2 = outputcanvas.getContext('2d');
+    outputcanvas.width = width;
+    outputcanvas.height = height;
+    ctx2.drawImage(inputcanvas, cropleft, croptop, cropwidth, cropheight, 0, 0, width, height);
+}
+
+function GenerateCanvasWithMultipleCopiesOfINput(inputcanvas, outwidth, outheight, imgwidth, outputcanvas) {
+    let mulfactor = inputcanvas.width / imgwidth;
+    imgwidth = inputcanvas.width;
+    imgheight = inputcanvas.height;
+    outwidth = Math.ceil(outwidth * mulfactor);
+    outheight = Math.ceil(outheight * mulfactor);
+
+    outputcanvas.width = outwidth;
+    outputcanvas.height = outheight;
+    ctx2 = outputcanvas.getContext('2d');        
+
+    let numx = Math.floor(outwidth / imgwidth);
+    let numy = Math.floor(outheight / imgheight);
+    for (let i = 0; i < numx; i++) {
+        for (let j = 0; j < numy; j++) {
+            ctx2.drawImage(inputcanvas, 0, 0, imgwidth, imgheight, i * imgwidth, j * imgheight, imgwidth, imgheight);
+        }
+    }
+}
+
+function updatedisplay(inputcanvas) {
+    let targetwidth = document.getElementById("resized").offsetWidth;
+
+    width = inputcanvas.width;
+    height = inputcanvas.height;
+    outcanvas = document.getElementById("resized");
+    outcanvas.width = targetwidth;
+    outcanvas.height = Math.ceil(targetwidth * height * 1.0 / width);
+    ctx2 = outcanvas.getContext('2d');
+    ctx2.drawImage(inputcanvas, 0, 0, width, height, 0, 0, targetwidth, Math.ceil(targetwidth * height * 1.0 / width));
+}
+
+function toggleForm(formid) {
+    document.getElementById(formid).style.display = document.getElementById(formid).style.display === 'none' ? 'block' : 'none';
+}
+
+function UpdateAspectRatios(ind_w, ind_h, print_w, print_h) {
+    edittoaspectratio(document.getElementById("input"), facepositions[2], facepositions[0], facepositions[1], 400, Math.floor(400.0 * ind_h / ind_w), croppedcanvas);
+    outputcanvas = document.getElementById('outputedited');
+    GenerateCanvasWithMultipleCopiesOfINput(croppedcanvas, print_w, print_h, ind_w, outputcanvas );
+    updatedisplay(outputcanvas);
+}
+
 function detectFaceBoundingBoxes(imageElement) {
     // writemessage("Messagewrite");
     try {
@@ -125,32 +200,38 @@ function detectFaceBoundingBoxes(imageElement) {
                 var bottom = Math.floor(results[0].detection.box.bottom);
                 var center = Math.floor((results[0].detection.box.topLeft.x + results[0].detection.box.topRight.x) / 2);
                 toppos = top_of_head(canvas, top, center);
+                facepositions = [top, bottom, center];
 
                 try {
-                    // Face should be 60% of image height. Add 10% at top and 30% at bottom.
-                    fullheight = Math.floor((bottom - toppos) / .6)
-                    pictop = Math.floor(toppos - fullheight * .1)
-                    picbottom = Math.floor(bottom + fullheight * .3)
-                    picright = center + fullheight * .5;
-                    picleft = center - fullheight * .5;
-                    console.log(fullheight, toppos, bottom, pictop, picbottom, picright, picleft);
-                    var canvas2 = document.getElementById('outputedited');
-                    const ctx2 = canvas2.getContext('2d');
-                    canvas2.width = 1800;
-                    canvas2.height = 1200;
-                    for (var i = 0; i < 2; i++) {
-                        for (var j = 0; j < 3; j++) {
-                            ctx2.drawImage(imageElement, picleft, pictop, fullheight, fullheight, j * 600, i * 600, 600, 600);
-                        }
-                    }
-                    document.getElementById("output").style.display = "block";
-                    var canvasshow = document.getElementById("resized");
-                    var canvasshowctx = canvasshow.getContext('2d');
-                    var targetwidth = canvasshow.parentElement.offsetWidth;
-                    canvasshow.width = targetwidth;
-                    canvasshow.height = targetwidth * 2/3;
-                    console.log(targetwidth);
-                    canvasshowctx.drawImage(canvas2, 0, 0, targetwidth, targetwidth*2/3);
+                    edittoaspectratio(imageElement, center, toppos, bottom, 400, 400, croppedcanvas);
+                    outputcanvas = document.getElementById('outputedited');
+                    GenerateCanvasWithMultipleCopiesOfINput(croppedcanvas, 1800, 1200, 600, outputcanvas );
+                    updatedisplay(outputcanvas);
+
+                    // // Face should be 60% of image height. Add 10% at top and 30% at bottom.
+                    // fullheight = Math.floor((bottom - toppos) / .6)
+                    // pictop = Math.floor(toppos - fullheight * .1)
+                    // picbottom = Math.floor(bottom + fullheight * .3)
+                    // picright = center + fullheight * .5;
+                    // picleft = center - fullheight * .5;
+                    // console.log(fullheight, toppos, bottom, pictop, picbottom, picright, picleft);
+                    // var canvas2 = document.getElementById('outputedited');
+                    // const ctx2 = canvas2.getContext('2d');
+                    // canvas2.width = 1800;
+                    // canvas2.height = 1200;
+                    // for (var i = 0; i < 2; i++) {
+                    //     for (var j = 0; j < 3; j++) {
+                    //         ctx2.drawImage(imageElement, picleft, pictop, fullheight, fullheight, j * 600, i * 600, 600, 600);
+                    //     }
+                    // }
+                    // document.getElementById("output").style.display = "block";
+                    // var canvasshow = document.getElementById("resized");
+                    // var canvasshowctx = canvasshow.getContext('2d');
+                    // var targetwidth = canvasshow.parentElement.offsetWidth;
+                    // canvasshow.width = targetwidth;
+                    // canvasshow.height = targetwidth * 2/3;
+                    // console.log(targetwidth);
+                    // canvasshowctx.drawImage(canvas2, 0, 0, targetwidth, targetwidth*2/3);
                     document.getElementById("input").style.display = "none";
                     document.getElementById("resized").style.display = "block";
                 } catch (e) {
