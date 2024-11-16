@@ -51,23 +51,9 @@
                 </div>
             </div>
             <div class="w3-container ">
-                <div class="w3-container image-upload w3-center w3-padding-16">
-                    <label for="imageUpload" class="w3-button">
-                        Upload Image
-                    </label>
-                    <input type="file" accept="image/*" id="imageUpload" />
-                </div>
-            </div>
-        </div>
-        <div id="output" style="display: none;">
-            <img id="inputImage" style="display:none;" />
-            <canvas id="outputedited" style="display:none;"></canvas>
-            <canvas id="resized"></canvas>
-            <div class="w3-container w3-padding-16 w3-center">
-                <div class="w3-button w3-teal" id="downloadimg">Download</div>
-            </div>
-            <form class="w3-container w3-padding-16 w3-center">
-                <button class="w3-button w3-teal" onclick="toggleForm('dimensionForm')">Change Photo and Paper Dimensions</button>
+
+<div class="w3-container w3-padding-16 w3-center">
+                <button class="w3-button w3-teal" onclick="toggleForm2('dimensionForm')">Change Photo and Paper Dimensions</button>
                 <div id="dimensionForm" style="display: none;">
                     <label for="photoWidth">Photo Width:</label>
                     <input type="number" id="photoWidth" value="2">
@@ -90,9 +76,24 @@
                         <option value="mm">Millimeters</option>
                     </select><br>                                
                 </div>
-                <button class="w3-button w3-teal" onclick="UpdateAspectRatios(document.getElementById('photoWidth').value, document.getElementById('photoHeight').value, document.getElementById('paperWidth').value, document.getElementById('paperHeight').value)">Update</button>
-            </form>
-            
+            </div>
+
+                <div class="w3-container image-upload w3-center w3-padding-16">
+                    <label for="imageUpload" class="w3-button">
+                        Upload Image
+                    </label>
+                    <input type="file" accept="image/*" id="imageUpload" />
+                </div>
+            </div>
+        </div>
+        <div id="output" style="display: none;">
+            <img id="inputImage" style="display:none;" />
+            <canvas id="outputedited" style="display:none;"></canvas>
+            <canvas id="resized"></canvas>
+            <div class="w3-container w3-padding-16 w3-center">
+                <div class="w3-button w3-teal" id="downloadimg">Download</div>
+            </div>
+                        
             <div class="w3-large">
                 Note
             </div>

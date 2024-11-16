@@ -76,20 +76,16 @@ function is_above_hair(left, ctr, right) {
     return true;
 }
 function position_wrt_hairtop(ctx, center_head, y, width) {
-    // console.log("h2");
     ctr = ctx.getImageData(center_head, y, 5, 1).data;
     left = ctx.getImageData(3, y, 5, 1).data;
     right = ctx.getImageData(width - 6, y, 5, 1).data;
     v = is_above_hair(left, ctr, right);
-    // console.log(y, v);
     return v;
 }
 
 function top_of_head(canvas, top_head, center_head) {
-    // console.log("h1");
     try {
         ctx = canvas.getContext('2d');
-        // console.log("h3");
 
         // sort of binary search
         let jumpsize = 16;
@@ -107,7 +103,6 @@ function top_of_head(canvas, top_head, center_head) {
                 break;
             }
             jumpsize /= 2;
-            // console.log("jump updated", jumpsize);
             deltadir *= -1;
             switchif = !switchif;
         }
@@ -162,18 +157,20 @@ function GenerateCanvasWithMultipleCopiesOfINput(inputcanvas, outwidth, outheigh
 }
 
 function updatedisplay(inputcanvas) {
-    let targetwidth = document.getElementById("resized").offsetWidth;
 
     width = inputcanvas.width;
     height = inputcanvas.height;
+console.log("H");
     outcanvas = document.getElementById("resized");
+    targetwidth = outcanvas.parentElement.offsetWidth;
+console.log("W" + targetwidth);
     outcanvas.width = targetwidth;
     outcanvas.height = Math.ceil(targetwidth * height * 1.0 / width);
     ctx2 = outcanvas.getContext('2d');
     ctx2.drawImage(inputcanvas, 0, 0, width, height, 0, 0, targetwidth, Math.ceil(targetwidth * height * 1.0 / width));
 }
 
-function toggleForm(formid) {
+function toggleForm2(formid) {
     document.getElementById(formid).style.display = document.getElementById(formid).style.display === 'none' ? 'block' : 'none';
 }
 
@@ -206,32 +203,10 @@ function detectFaceBoundingBoxes(imageElement) {
                     edittoaspectratio(imageElement, center, toppos, bottom, 400, 400, croppedcanvas);
                     outputcanvas = document.getElementById('outputedited');
                     GenerateCanvasWithMultipleCopiesOfINput(croppedcanvas, 1800, 1200, 600, outputcanvas );
+                    document.getElementById("output").style.display = "block";
                     updatedisplay(outputcanvas);
+                    console.log("Here");
 
-                    // // Face should be 60% of image height. Add 10% at top and 30% at bottom.
-                    // fullheight = Math.floor((bottom - toppos) / .6)
-                    // pictop = Math.floor(toppos - fullheight * .1)
-                    // picbottom = Math.floor(bottom + fullheight * .3)
-                    // picright = center + fullheight * .5;
-                    // picleft = center - fullheight * .5;
-                    // console.log(fullheight, toppos, bottom, pictop, picbottom, picright, picleft);
-                    // var canvas2 = document.getElementById('outputedited');
-                    // const ctx2 = canvas2.getContext('2d');
-                    // canvas2.width = 1800;
-                    // canvas2.height = 1200;
-                    // for (var i = 0; i < 2; i++) {
-                    //     for (var j = 0; j < 3; j++) {
-                    //         ctx2.drawImage(imageElement, picleft, pictop, fullheight, fullheight, j * 600, i * 600, 600, 600);
-                    //     }
-                    // }
-                    // document.getElementById("output").style.display = "block";
-                    // var canvasshow = document.getElementById("resized");
-                    // var canvasshowctx = canvasshow.getContext('2d');
-                    // var targetwidth = canvasshow.parentElement.offsetWidth;
-                    // canvasshow.width = targetwidth;
-                    // canvasshow.height = targetwidth * 2/3;
-                    // console.log(targetwidth);
-                    // canvasshowctx.drawImage(canvas2, 0, 0, targetwidth, targetwidth*2/3);
                     document.getElementById("input").style.display = "none";
                     document.getElementById("resized").style.display = "block";
                 } catch (e) {
