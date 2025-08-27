@@ -1,0 +1,39 @@
+body {
+    font-family: sans-serif;
+    margin: 20px;
+}
+
+h1 {
+    text-align: center;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    margin: 10px;
+}
+
+#confirmation-area, #records-area {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#filters {
+    margin-bottom: 20px;
+}
+
+#records-container {
+    margin-top: 10px;
+}
+
+.record {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.record:last-child {
+    border-bottom: none;
+}
