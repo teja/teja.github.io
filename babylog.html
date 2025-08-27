@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baby Log</title>
+    <link rel="stylesheet" href="babylog.css">
+</head>
+<body>
+    <h1>Baby Log</h1>
+
+    <button id="log-button">Log</button>
+    <button id="show-records-button">Show Records</button>
+
+    <div id="confirmation-area" style="display: none;">
+        <p id="transcribed-text"></p>
+        <button id="confirm-button">Confirm</button>
+        <button id="try-again-button">Try Again</button>
+    </div>
+
+    <div id="records-area" style="display: none;">
+        <h2>Records</h2>
+        <div id="filters">
+            <label for="start-date">From:</label>
+            <input type="datetime-local" id="start-date">
+            <label for="end-date">To:</label>
+            <input type="datetime-local" id="end-date">
+            <button id="filter-button">Filter</button>
+        </div>
+        <div id="records-container"></div>
+    </div>
+
+    <script src="babylog.js"></script>
+</body>
+</html>
