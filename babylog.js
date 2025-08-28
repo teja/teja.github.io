@@ -1,19 +1,97 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- DOM Elements ---
+    // Areas
+    const confirmationArea = document.getElementById('confirmation-area');
+    const recordsArea = document.getElementById('records-area');
+    const successMessage = document.getElementById('success-message');
+    // Buttons
     const logButton = document.getElementById('log-button');
     const showRecordsButton = document.getElementById('show-records-button');
-    const confirmationArea = document.getElementById('confirmation-area');
-    const transcribedText = document.getElementById('transcribed-text');
     const confirmButton = document.getElementById('confirm-button');
     const tryAgainButton = document.getElementById('try-again-button');
-    const recordsArea = document.getElementById('records-area');
-    const recordsContainer = document.getElementById('records-container');
     const filterButton = document.getElementById('filter-button');
+    // Voice Log
+    const transcribedText = document.getElementById('transcribed-text');
+    // Standard Log
+    const standardLogForm = document.getElementById('standard-log-form');
+    const eventTypeSelect = document.getElementById('event-type');
+    const timeOffsetSelect = document.getElementById('time-offset');
+    const customTimeGroup = document.getElementById('custom-time-group');
+    const customTimeInput = document.getElementById('custom-time');
+    // Records
+    const recordsContainer = document.getElementById('records-container');
     const startDateInput = document.getElementById('start-date');
     const endDateInput = document.getElementById('end-date');
 
+
+    // --- State Variables ---
     let recognition;
     let final_transcript = '';
 
+
+    // --- Functions ---
+
+    function showSuccessMessage(message) {
+        successMessage.textContent = message;
+        successMessage.style.display = 'block';
+
+        setTimeout(() => {
+            successMessage.style.display = 'none';
+        }, 3000); // Hide after 3 seconds
+    }
+
+    // Generic function to save a record
+    function saveRecord(message, timestamp) {
+        const record = { message, timestamp };
+        let records = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
+        records.push(record);
+        localStorage.setItem('babyLogRecords', JSON.stringify(records));
+    }
+
+    function parseTimeFromTranscript(transcript) {
+        const now = new Date();
+        transcript = transcript.toLowerCase();
+
+        // Pattern: "30 minutes ago", "1 minute ago"
+        let match = transcript.match(/(\d+)\s+minutes? ago/);
+        if (match) {
+            const minutes = parseInt(match[1], 10);
+            now.setMinutes(now.getMinutes() - minutes);
+            return now;
+        }
+
+        // Pattern: "2 hours ago", "1 hour ago"
+        match = transcript.match(/(\d+)\s+hours? ago/);
+        if (match) {
+            const hours = parseInt(match[1], 10);
+            now.setHours(now.getHours() - hours);
+            return now;
+        }
+
+        // Pattern: "an hour ago"
+        if (transcript.includes('an hour ago')) {
+            now.setHours(now.getHours() - 1);
+            return now;
+        }
+
+        // Pattern: "yesterday"
+        if (transcript.includes('yesterday')) {
+            now.setDate(now.getDate() - 1);
+            return now;
+        }
+
+        // Pattern: "last night"
+        if (transcript.includes('last night')) {
+            now.setDate(now.getDate() - 1);
+            now.setHours(20, 0, 0, 0); // Assume 8 PM
+            return now;
+        }
+
+        return null; // No time expression found
+    }
+
+
+    // --- Voice Recognition Setup ---
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
         recognition = new SpeechRecognition();
@@ -68,17 +146,15 @@ document.addEventListener('DOMContentLoaded', () => {
     confirmButton.addEventListener('click', () => {
         const message = final_transcript;
         if (message) {
-            const timestamp = new Date().toISOString();
-            const record = { message, timestamp };
+            const parsedDate = parseTimeFromTranscript(message);
+            const timestamp = (parsedDate || new Date()).toISOString();
 
-            let records = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
-            records.push(record);
-            localStorage.setItem('babyLogRecords', JSON.stringify(records));
+            saveRecord(message, timestamp);
 
             confirmationArea.style.display = 'none';
             final_transcript = '';
             transcribedText.textContent = '';
-            alert('Record saved!');
+            showSuccessMessage('Voice log saved!');
         }
     });
 
@@ -88,6 +164,48 @@ document.addEventListener('DOMContentLoaded', () => {
         transcribedText.textContent = '';
     });
 
+
+    // --- Standard Log Logic ---
+    timeOffsetSelect.addEventListener('change', () => {
+        if (timeOffsetSelect.value === 'custom') {
+            customTimeGroup.style.display = 'block';
+        } else {
+            customTimeGroup.style.display = 'none';
+        }
+    });
+
+    standardLogForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const eventType = eventTypeSelect.options[eventTypeSelect.selectedIndex].text;
+        const timeOffset = timeOffsetSelect.value;
+
+        let timestamp;
+
+        if (timeOffset === 'custom') {
+            if (customTimeInput.value) {
+                timestamp = new Date(customTimeInput.value).toISOString();
+            } else {
+                // Handle case where custom is selected but no time is entered
+                alert('Please select a custom time.');
+                return;
+            }
+        } else {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - parseInt(timeOffset, 10));
+            timestamp = now.toISOString();
+        }
+
+        saveRecord(eventType, timestamp);
+        showSuccessMessage('Standard log saved!');
+
+        // Optional: Reset form
+        standardLogForm.reset();
+        customTimeGroup.style.display = 'none';
+    });
+
+
+    // --- Record Display and Filtering ---
     function displayRecords(records) {
         recordsContainer.innerHTML = ''; // Clear previous records
         if (!records || records.length === 0) {
