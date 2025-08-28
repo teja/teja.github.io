@@ -82,14 +82,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const summaryContainer = document.getElementById('summary-container');
         const dailyTableBody = document.getElementById('daily-table-body');
 
+        const keywords = {
+            Feed: ['feed', 'food', 'eat', 'ate', 'nurse', 'nursing', 'bottle', 'fed'],
+            Poo: ['poo', 'poop', 'pooped', 'soiled', 'bowel movement'],
+            Urine: ['urine', 'urinate', 'pee', 'wet']
+        };
+
+        function getEventType(message) {
+            const lowerMessage = message.toLowerCase();
+            for (const type in keywords) {
+                if (keywords[type].some(keyword => lowerMessage.includes(keyword))) {
+                    return type;
+                }
+            }
+            return null;
+        }
+
         // --- 24-Hour Summary ---
         const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
         const recentRecords = allRecords.filter(r => new Date(r.timestamp) > twentyFourHoursAgo);
 
         const summaryCounts = { Feed: 0, Poo: 0, Urine: 0 };
         recentRecords.forEach(record => {
-            if (summaryCounts.hasOwnProperty(record.message)) {
-                summaryCounts[record.message]++;
+            const eventType = getEventType(record.message);
+            if (eventType) {
+                summaryCounts[eventType]++;
             }
         });
 
@@ -102,12 +119,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Daily Breakdown ---
         const dailyData = {};
         allRecords.forEach(record => {
-            const date = new Date(record.timestamp).toISOString().split('T')[0]; // YYYY-MM-DD
-            if (!dailyData[date]) {
-                dailyData[date] = { Feed: 0, Poo: 0, Urine: 0 };
-            }
-            if (dailyData[date].hasOwnProperty(record.message)) {
-                dailyData[date][record.message]++;
+            const eventType = getEventType(record.message);
+            if (eventType) {
+                const date = new Date(record.timestamp).toISOString().split('T')[0];
+                if (!dailyData[date]) {
+                    dailyData[date] = { Feed: 0, Poo: 0, Urine: 0 };
+                }
+                dailyData[date][eventType]++;
             }
         });
 
