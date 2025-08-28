@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const keywords = {
             Feed: ['feed', 'food', 'eat', 'ate', 'nurse', 'nursing', 'bottle', 'fed'],
             Poo: ['poo', 'poop', 'pooped', 'soiled', 'bowel movement'],
-            Urine: ['urine', 'urinate', 'pee', 'wet']
+            Urine: ['urine', 'urinate', 'urinated', 'pee', 'wet']
         };
 
         function getEventType(message) {
