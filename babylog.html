@@ -9,8 +9,40 @@
 <body>
     <h1>Baby Log</h1>
 
-    <button id="log-button">Log</button>
-    <button id="show-records-button">Show Records</button>
+    <div class="controls">
+        <button id="log-button">Voice Log</button>
+        <button id="show-records-button">Show Records</button>
+    </div>
+
+    <div id="standard-log-area">
+        <h2>Standard Log</h2>
+        <form id="standard-log-form">
+            <div class="form-group">
+                <label for="event-type">Event:</label>
+                <select id="event-type" name="event-type">
+                    <option value="feed">Feed</option>
+                    <option value="poo">Poo</option>
+                    <option value="urine">Urine</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="time-offset">Time:</label>
+                <select id="time-offset" name="time-offset">
+                    <option value="0">Now</option>
+                    <option value="15">15 minutes ago</option>
+                    <option value="30">30 minutes ago</option>
+                    <option value="60">1 hour ago</option>
+                    <option value="120">2 hours ago</option>
+                    <option value="custom">Custom</option>
+                </select>
+            </div>
+            <div class="form-group" id="custom-time-group" style="display: none;">
+                <label for="custom-time">Custom Time:</label>
+                <input type="datetime-local" id="custom-time" name="custom-time">
+            </div>
+            <button type="submit" id="save-log-button">Save Log</button>
+        </form>
+    </div>
 
     <div id="confirmation-area" style="display: none;">
         <p id="transcribed-text"></p>
@@ -29,6 +61,8 @@
         </div>
         <div id="records-container"></div>
     </div>
+
+    <div id="success-message" style="display: none;"></div>
 
     <script src="babylog.js"></script>
 </body>
