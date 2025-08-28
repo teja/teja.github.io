@@ -1,46 +1,35 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
-    // Areas
-    const confirmationArea = document.getElementById('confirmation-area');
-    const recordsArea = document.getElementById('records-area');
-    const successMessage = document.getElementById('success-message');
-    // Buttons
-    const logButton = document.getElementById('log-button');
+    const voiceLogButton = document.getElementById('voice-log-button');
     const showRecordsButton = document.getElementById('show-records-button');
-    const confirmButton = document.getElementById('confirm-button');
-    const tryAgainButton = document.getElementById('try-again-button');
-    const filterButton = document.getElementById('filter-button');
-    // Voice Log
-    const transcribedText = document.getElementById('transcribed-text');
-    // Standard Log
     const standardLogForm = document.getElementById('standard-log-form');
-    const eventTypeSelect = document.getElementById('event-type');
-    const timeOffsetSelect = document.getElementById('time-offset');
+    const timeOffsetGroup = document.getElementById('time-offset-group');
     const customTimeGroup = document.getElementById('custom-time-group');
     const customTimeInput = document.getElementById('custom-time');
-    // Records
+    const confirmationArea = document.getElementById('confirmation-area');
+    const transcribedText = document.getElementById('transcribed-text');
+    const confirmButton = document.getElementById('confirm-button');
+    const tryAgainButton = document.getElementById('try-again-button');
+    const recordsArea = document.getElementById('records-area');
     const recordsContainer = document.getElementById('records-container');
+    const successMessage = document.getElementById('success-message');
+    const filterButton = document.getElementById('filter-button');
     const startDateInput = document.getElementById('start-date');
     const endDateInput = document.getElementById('end-date');
-
 
     // --- State Variables ---
     let recognition;
     let final_transcript = '';
 
-
     // --- Functions ---
-
     function showSuccessMessage(message) {
         successMessage.textContent = message;
         successMessage.style.display = 'block';
-
         setTimeout(() => {
             successMessage.style.display = 'none';
-        }, 3000); // Hide after 3 seconds
+        }, 3000);
     }
 
-    // Generic function to save a record
     function saveRecord(message, timestamp) {
         const record = { message, timestamp };
         let records = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
@@ -51,47 +40,97 @@ document.addEventListener('DOMContentLoaded', () => {
     function parseTimeFromTranscript(transcript) {
         const now = new Date();
         transcript = transcript.toLowerCase();
-
-        // Pattern: "30 minutes ago", "1 minute ago"
         let match = transcript.match(/(\d+)\s+minutes? ago/);
-        if (match) {
-            const minutes = parseInt(match[1], 10);
-            now.setMinutes(now.getMinutes() - minutes);
-            return now;
-        }
-
-        // Pattern: "2 hours ago", "1 hour ago"
+        if (match) { now.setMinutes(now.getMinutes() - parseInt(match[1], 10)); return now; }
         match = transcript.match(/(\d+)\s+hours? ago/);
-        if (match) {
-            const hours = parseInt(match[1], 10);
-            now.setHours(now.getHours() - hours);
-            return now;
-        }
-
-        // Pattern: "an hour ago"
-        if (transcript.includes('an hour ago')) {
-            now.setHours(now.getHours() - 1);
-            return now;
-        }
-
-        // Pattern: "yesterday"
-        if (transcript.includes('yesterday')) {
-            now.setDate(now.getDate() - 1);
-            return now;
-        }
-
-        // Pattern: "last night"
-        if (transcript.includes('last night')) {
-            now.setDate(now.getDate() - 1);
-            now.setHours(20, 0, 0, 0); // Assume 8 PM
-            return now;
-        }
-
-        return null; // No time expression found
+        if (match) { now.setHours(now.getHours() - parseInt(match[1], 10)); return now; }
+        if (transcript.includes('an hour ago')) { now.setHours(now.getHours() - 1); return now; }
+        if (transcript.includes('yesterday')) { now.setDate(now.getDate() - 1); return now; }
+        if (transcript.includes('last night')) { now.setDate(now.getDate() - 1); now.setHours(20, 0, 0, 0); return now; }
+        return null;
     }
 
+    function displayRecords(records) {
+        recordsContainer.innerHTML = '';
+        if (!records || records.length === 0) {
+            recordsContainer.innerHTML = '<p>No records found.</p>';
+            return;
+        }
+        records.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        records.forEach(record => {
+            const recordElement = document.createElement('div');
+            recordElement.classList.add('record');
+            const messageElement = document.createElement('p');
+            messageElement.textContent = record.message;
+            const timeElement = document.createElement('small');
+            timeElement.textContent = new Date(record.timestamp).toLocaleString();
+            recordElement.appendChild(messageElement);
+            recordElement.appendChild(timeElement);
+            recordsContainer.appendChild(recordElement);
+        });
+    }
 
-    // --- Voice Recognition Setup ---
+    function loadAndDisplayRecords() {
+        const records = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
+        displayRecords(records);
+    }
+
+    // --- Event Listeners ---
+    showRecordsButton.addEventListener('click', () => {
+        const isDisplayed = recordsArea.style.display !== 'none';
+        recordsArea.style.display = isDisplayed ? 'none' : 'block';
+        if (!isDisplayed) {
+            loadAndDisplayRecords();
+        }
+    });
+
+    timeOffsetGroup.addEventListener('change', (event) => {
+        if (event.target.value === 'custom') {
+            customTimeGroup.style.display = 'block';
+        } else {
+            customTimeGroup.style.display = 'none';
+        }
+    });
+
+    standardLogForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const eventType = document.querySelector('input[name="event-type"]:checked').value;
+        const timeOffset = document.querySelector('input[name="time-offset"]:checked').value;
+
+        let timestamp;
+        if (timeOffset === 'custom') {
+            if (customTimeInput.value) {
+                timestamp = new Date(customTimeInput.value).toISOString();
+            } else {
+                alert('Please select a custom time.');
+                return;
+            }
+        } else {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - parseInt(timeOffset, 10));
+            timestamp = now.toISOString();
+        }
+        saveRecord(eventType, timestamp);
+        showSuccessMessage('Standard log saved!');
+        standardLogForm.reset();
+        customTimeGroup.style.display = 'none';
+    });
+
+    filterButton.addEventListener('click', () => {
+        const startDate = startDateInput.value ? new Date(startDateInput.value) : null;
+        const endDate = endDateInput.value ? new Date(endDateInput.value) : null;
+        const allRecords = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
+        const filteredRecords = allRecords.filter(record => {
+            const recordDate = new Date(record.timestamp);
+            if (startDate && recordDate < startDate) return false;
+            if (endDate && recordDate > endDate) return false;
+            return true;
+        });
+        displayRecords(filteredRecords);
+    });
+
+    // Voice Recognition
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
         recognition = new SpeechRecognition();
@@ -99,8 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
         recognition.interimResults = true;
 
         recognition.onstart = () => {
-            logButton.textContent = 'Listening...';
-            logButton.disabled = true;
+            voiceLogButton.textContent = 'Listening...';
+            voiceLogButton.disabled = true;
             confirmationArea.style.display = 'none';
         };
 
@@ -118,151 +157,38 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         recognition.onend = () => {
-            logButton.textContent = 'Log';
-            logButton.disabled = false;
+            voiceLogButton.textContent = 'Voice Log';
+            voiceLogButton.disabled = false;
             if (final_transcript) {
                 transcribedText.textContent = final_transcript;
                 confirmationArea.style.display = 'block';
             }
         };
 
-        recognition.onerror = (event) => {
-            console.error('Speech recognition error', event.error);
-            logButton.textContent = 'Log';
-            logButton.disabled = false;
-        };
-    } else {
-        alert('Your browser does not support the Web Speech API. Please try Chrome or another supported browser.');
-        logButton.disabled = true;
-    }
-
-    logButton.addEventListener('click', () => {
-        if (recognition) {
+        voiceLogButton.addEventListener('click', () => {
             final_transcript = '';
             recognition.start();
-        }
-    });
+        });
 
-    confirmButton.addEventListener('click', () => {
-        const message = final_transcript;
-        if (message) {
-            const parsedDate = parseTimeFromTranscript(message);
-            const timestamp = (parsedDate || new Date()).toISOString();
+        confirmButton.addEventListener('click', () => {
+            const message = final_transcript;
+            if (message) {
+                const parsedDate = parseTimeFromTranscript(message);
+                const timestamp = (parsedDate || new Date()).toISOString();
+                saveRecord(message, timestamp);
+                showSuccessMessage('Voice log saved!');
+                confirmationArea.style.display = 'none';
+                final_transcript = '';
+            }
+        });
 
-            saveRecord(message, timestamp);
-
+        tryAgainButton.addEventListener('click', () => {
             confirmationArea.style.display = 'none';
             final_transcript = '';
-            transcribedText.textContent = '';
-            showSuccessMessage('Voice log saved!');
-        }
-    });
-
-    tryAgainButton.addEventListener('click', () => {
-        confirmationArea.style.display = 'none';
-        final_transcript = '';
-        transcribedText.textContent = '';
-    });
-
-
-    // --- Standard Log Logic ---
-    timeOffsetSelect.addEventListener('change', () => {
-        if (timeOffsetSelect.value === 'custom') {
-            customTimeGroup.style.display = 'block';
-        } else {
-            customTimeGroup.style.display = 'none';
-        }
-    });
-
-    standardLogForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-
-        const eventType = eventTypeSelect.options[eventTypeSelect.selectedIndex].text;
-        const timeOffset = timeOffsetSelect.value;
-
-        let timestamp;
-
-        if (timeOffset === 'custom') {
-            if (customTimeInput.value) {
-                timestamp = new Date(customTimeInput.value).toISOString();
-            } else {
-                // Handle case where custom is selected but no time is entered
-                alert('Please select a custom time.');
-                return;
-            }
-        } else {
-            const now = new Date();
-            now.setMinutes(now.getMinutes() - parseInt(timeOffset, 10));
-            timestamp = now.toISOString();
-        }
-
-        saveRecord(eventType, timestamp);
-        showSuccessMessage('Standard log saved!');
-
-        // Optional: Reset form
-        standardLogForm.reset();
-        customTimeGroup.style.display = 'none';
-    });
-
-
-    // --- Record Display and Filtering ---
-    function displayRecords(records) {
-        recordsContainer.innerHTML = ''; // Clear previous records
-        if (!records || records.length === 0) {
-            recordsContainer.innerHTML = '<p>No records found.</p>';
-            return;
-        }
-
-        // Sort records by timestamp, newest first
-        records.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-        records.forEach(record => {
-            const recordElement = document.createElement('div');
-            recordElement.classList.add('record');
-
-            const messageElement = document.createElement('p');
-            messageElement.textContent = record.message;
-
-            const timeElement = document.createElement('small');
-            timeElement.textContent = new Date(record.timestamp).toLocaleString();
-
-            recordElement.appendChild(messageElement);
-            recordElement.appendChild(timeElement);
-
-            recordsContainer.appendChild(recordElement);
-        });
-    }
-
-    function loadAndDisplayRecords() {
-        const records = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
-        displayRecords(records);
-    }
-
-    showRecordsButton.addEventListener('click', () => {
-        const isDisplayed = recordsArea.style.display !== 'none';
-        recordsArea.style.display = isDisplayed ? 'none' : 'block';
-        if (!isDisplayed) {
-            loadAndDisplayRecords();
-        }
-    });
-
-    filterButton.addEventListener('click', () => {
-        const startDate = startDateInput.value ? new Date(startDateInput.value) : null;
-        const endDate = endDateInput.value ? new Date(endDateInput.value) : null;
-
-        const allRecords = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
-
-        const filteredRecords = allRecords.filter(record => {
-            const recordDate = new Date(record.timestamp);
-            if (startDate && recordDate < startDate) {
-                return false;
-            }
-            if (endDate && recordDate > endDate) {
-                return false;
-            }
-            return true;
         });
 
-        displayRecords(filteredRecords);
-    });
+    } else {
+        voiceLogButton.disabled = true;
+        showSuccessMessage('Voice recognition not supported.');
+    }
 });

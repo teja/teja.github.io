@@ -11,14 +11,37 @@ button {
     padding: 10px 20px;
     font-size: 16px;
     cursor: pointer;
-    margin: 10px;
+    margin: 0 5px;
 }
 
-#confirmation-area, #records-area {
-    margin-top: 20px;
+.controls {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#standard-log-area, #confirmation-area, #records-area {
+    margin: 20px auto;
     padding: 20px;
     border: 1px solid #ccc;
     border-radius: 5px;
+    max-width: 500px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group select, .form-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
 }
 
 #filters {
@@ -38,31 +61,28 @@ button {
     border-bottom: none;
 }
 
-.controls {
-    margin-bottom: 20px;
+.radio-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
-#standard-log-area {
-    margin-top: 20px;
-    padding: 20px;
+.radio-group input[type="radio"] {
+    display: none; /* Hide the actual radio button */
+}
+
+.radio-group label {
+    padding: 8px 16px;
     border: 1px solid #ccc;
-    border-radius: 5px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
 }
 
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-}
-
-.form-group select, .form-group input {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+.radio-group input[type="radio"]:checked + label {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
 }
 
 #success-message {
