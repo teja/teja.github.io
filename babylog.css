@@ -85,6 +85,64 @@ button {
     border-color: #007bff;
 }
 
+.app-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.tab-bar {
+    display: flex;
+    border-bottom: 2px solid #ccc;
+    margin-bottom: 20px;
+}
+
+.tab-button {
+    padding: 10px 20px;
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+    font-size: 16px;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px; /* Align with parent border */
+}
+
+.tab-button.active {
+    border-bottom: 3px solid #007bff;
+    color: #007bff;
+}
+
+.tab-panel {
+    display: none;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+#report-summary, #report-daily {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 5px;
+}
+
+#daily-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+#daily-table th, #daily-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+#daily-table th {
+    background-color: #f2f2f2;
+}
+
 #success-message {
     position: fixed;
     bottom: 20px;
