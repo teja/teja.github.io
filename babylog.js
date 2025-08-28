@@ -1,8 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
     const voiceLogButton = document.getElementById('voice-log-button');
-    const showRecordsButton = document.getElementById('show-records-button');
     const standardLogForm = document.getElementById('standard-log-form');
+    // Tab Elements
+    const tabBar = document.querySelector('.tab-bar');
+    const tabPanels = document.querySelectorAll('.tab-panel');
     const timeOffsetGroup = document.getElementById('time-offset-group');
     const customTimeGroup = document.getElementById('custom-time-group');
     const customTimeInput = document.getElementById('custom-time');
@@ -75,12 +77,82 @@ document.addEventListener('DOMContentLoaded', () => {
         displayRecords(records);
     }
 
+    function generateReport() {
+        const allRecords = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
+        const summaryContainer = document.getElementById('summary-container');
+        const dailyTableBody = document.getElementById('daily-table-body');
+
+        // --- 24-Hour Summary ---
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const recentRecords = allRecords.filter(r => new Date(r.timestamp) > twentyFourHoursAgo);
+
+        const summaryCounts = { Feed: 0, Poo: 0, Urine: 0 };
+        recentRecords.forEach(record => {
+            if (summaryCounts.hasOwnProperty(record.message)) {
+                summaryCounts[record.message]++;
+            }
+        });
+
+        summaryContainer.innerHTML = `
+            <span><strong>Feeds:</strong> ${summaryCounts.Feed}</span> |
+            <span><strong>Poo:</strong> ${summaryCounts.Poo}</span> |
+            <span><strong>Urine:</strong> ${summaryCounts.Urine}</span>
+        `;
+
+        // --- Daily Breakdown ---
+        const dailyData = {};
+        allRecords.forEach(record => {
+            const date = new Date(record.timestamp).toISOString().split('T')[0]; // YYYY-MM-DD
+            if (!dailyData[date]) {
+                dailyData[date] = { Feed: 0, Poo: 0, Urine: 0 };
+            }
+            if (dailyData[date].hasOwnProperty(record.message)) {
+                dailyData[date][record.message]++;
+            }
+        });
+
+        dailyTableBody.innerHTML = ''; // Clear existing rows
+        const sortedDates = Object.keys(dailyData).sort().reverse(); // Newest first
+
+        sortedDates.forEach(date => {
+            const data = dailyData[date];
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${new Date(date).toLocaleDateString()}</td>
+                <td>${data.Feed}</td>
+                <td>${data.Poo}</td>
+                <td>${data.Urine}</td>
+            `;
+            dailyTableBody.appendChild(row);
+        });
+    }
+
     // --- Event Listeners ---
-    showRecordsButton.addEventListener('click', () => {
-        const isDisplayed = recordsArea.style.display !== 'none';
-        recordsArea.style.display = isDisplayed ? 'none' : 'block';
-        if (!isDisplayed) {
+    function switchTab(tabId) {
+        // Deactivate all tabs and panels
+        document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+        tabPanels.forEach(panel => panel.classList.remove('active'));
+
+        // Activate the selected tab and panel
+        const tabButton = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
+        const tabPanel = document.getElementById(`${tabId}-tab`);
+        if (tabButton && tabPanel) {
+            tabButton.classList.add('active');
+            tabPanel.classList.add('active');
+        }
+
+        // Load data if switching to records or report tab
+        if (tabId === 'records') {
             loadAndDisplayRecords();
+        } else if (tabId === 'report') {
+            generateReport();
+        }
+    }
+
+    tabBar.addEventListener('click', (event) => {
+        if (event.target.matches('.tab-button')) {
+            const tabId = event.target.dataset.tab;
+            switchTab(tabId);
         }
     });
 
