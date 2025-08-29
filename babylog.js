@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tabPanels = document.querySelectorAll('.tab-panel');
     const timeOffsetGroup = document.getElementById('time-offset-group');
     const customTimeGroup = document.getElementById('custom-time-group');
+    const customDateInput = document.getElementById('custom-date');
     const customTimeInput = document.getElementById('custom-time');
     const confirmationArea = document.getElementById('confirmation-area');
     const transcribedText = document.getElementById('transcribed-text');
@@ -91,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
         function getEventType(message) {
             const lowerMessage = message.toLowerCase();
             for (const type in keywords) {
-                if (keywords[type].some(keyword => lowerMessage.includes(keyword))) {
+                if (keywords[type].some(keyword => new RegExp(`\\b${keyword}\\b`).test(lowerMessage))) {
                     return type;
                 }
             }
@@ -121,7 +122,11 @@ document.addEventListener('DOMContentLoaded', () => {
         allRecords.forEach(record => {
             const eventType = getEventType(record.message);
             if (eventType) {
-                const date = new Date(record.timestamp).toISOString().split('T')[0];
+                const recordDate = new Date(record.timestamp);
+                const year = recordDate.getFullYear();
+                const month = recordDate.getMonth() + 1;
+                const day = recordDate.getDate();
+                const date = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
                 if (!dailyData[date]) {
                     dailyData[date] = { Feed: 0, Poo: 0, Urine: 0 };
                 }
@@ -177,6 +182,11 @@ document.addEventListener('DOMContentLoaded', () => {
     timeOffsetGroup.addEventListener('change', (event) => {
         if (event.target.value === 'custom') {
             customTimeGroup.style.display = 'block';
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const day = now.getDate().toString().padStart(2, '0');
+            customDateInput.value = `${year}-${month}-${day}`;
         } else {
             customTimeGroup.style.display = 'none';
         }
@@ -190,10 +200,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let timestamp;
         if (timeOffset === 'custom') {
-            if (customTimeInput.value) {
-                timestamp = new Date(customTimeInput.value).toISOString();
+            if (customDateInput.value && customTimeInput.value) {
+                const dateTimeString = `${customDateInput.value}T${customTimeInput.value}`;
+                timestamp = new Date(dateTimeString).toISOString();
             } else {
-                alert('Please select a custom time.');
+                alert('Please select a custom date and time.');
                 return;
             }
         } else {
@@ -210,6 +221,9 @@ document.addEventListener('DOMContentLoaded', () => {
     filterButton.addEventListener('click', () => {
         const startDate = startDateInput.value ? new Date(startDateInput.value) : null;
         const endDate = endDateInput.value ? new Date(endDateInput.value) : null;
+        if (endDate) {
+            endDate.setHours(23, 59, 59, 999); // Set to end of day
+        }
         const allRecords = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
         const filteredRecords = allRecords.filter(record => {
             const recordDate = new Date(record.timestamp);
