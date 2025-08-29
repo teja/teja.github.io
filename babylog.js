@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterButton = document.getElementById('filter-button');
     const startDateInput = document.getElementById('start-date');
     const endDateInput = document.getElementById('end-date');
+    const exportRecordsButton = document.getElementById('export-records-button');
+    const exportReportButton = document.getElementById('export-report-button');
 
     // --- State Variables ---
     let recognition;
@@ -171,6 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    let dailyDataForExport = {};
+
     function generateReport() {
         const allRecords = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
         const dailyTableBody = document.getElementById('daily-table-body');
@@ -194,6 +198,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         dailyTableBody.innerHTML = ''; // Clear existing rows
         const sortedDates = Object.keys(dailyData).sort().reverse(); // Newest first
+
+        dailyDataForExport = sortedDates.map(date => ({
+            date,
+            ...dailyData[date]
+        }));
 
         sortedDates.forEach(date => {
             const data = dailyData[date];
@@ -276,6 +285,9 @@ document.addEventListener('DOMContentLoaded', () => {
         customTimeGroup.style.display = 'none';
     });
 
+    exportRecordsButton.addEventListener('click', exportRecordsToCSV);
+    exportReportButton.addEventListener('click', exportReportToCSV);
+
     filterButton.addEventListener('click', () => {
         const startDate = startDateInput.value ? new Date(startDateInput.value.replace(/-/g, '\/')) : null;
         const endDate = endDateInput.value ? new Date(endDateInput.value.replace(/-/g, '\/')) : null;
@@ -352,6 +364,54 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         voiceLogButton.disabled = true;
         showSuccessMessage('Voice recognition not supported.');
+    }
+
+    // --- Export Functions ---
+    function downloadCSV(csvContent, fileName) {
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        if (link.href) {
+            URL.revokeObjectURL(link.href);
+        }
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function exportReportToCSV() {
+        let csvContent = '"Date","Feeds","Poo","Urine"\n';
+        dailyDataForExport.forEach(row => {
+            csvContent += `${row.date},${row.Feed},${row.Poo},${row.Urine}\n`;
+        });
+        downloadCSV(csvContent, 'babylog-report.csv');
+    }
+
+    function exportRecordsToCSV() {
+        const allRecords = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
+        const startDate = startDateInput.value ? new Date(startDateInput.value.replace(/-/g, '\/')) : null;
+        const endDate = endDateInput.value ? new Date(endDateInput.value.replace(/-/g, '\/')) : null;
+        if (endDate) {
+            endDate.setHours(23, 59, 59, 999);
+        }
+
+        const filteredRecords = allRecords.filter(record => {
+            const recordDate = new Date(record.timestamp);
+            if (startDate && recordDate < startDate) return false;
+            if (endDate && recordDate > endDate) return false;
+            return true;
+        });
+
+        let csvContent = '"Timestamp","Message"\n';
+        filteredRecords.forEach(record => {
+            const timestamp = record.timestamp;
+            const message = `"${record.message.replace(/"/g, '""')}"`;
+            csvContent += `${timestamp},${message}\n`;
+        });
+
+        downloadCSV(csvContent, 'babylog-records.csv');
     }
 
     // --- Initial Load ---
