@@ -78,26 +78,41 @@ document.addEventListener('DOMContentLoaded', () => {
         displayRecords(records);
     }
 
-    function generateReport() {
-        const allRecords = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
-        const summaryContainer = document.getElementById('summary-container');
-        const dailyTableBody = document.getElementById('daily-table-body');
+    const keywords = {
+        Feed: ['feed', 'food', 'eat', 'ate', 'nurse', 'nursing', 'bottle', 'fed'],
+        Poo: ['poo', 'poop', 'pooped', 'soiled', 'bowel movement'],
+        Urine: ['urine', 'urinate', 'urinated', 'pee', 'wet']
+    };
 
-        const keywords = {
-            Feed: ['feed', 'food', 'eat', 'ate', 'nurse', 'nursing', 'bottle', 'fed'],
-            Poo: ['poo', 'poop', 'pooped', 'soiled', 'bowel movement'],
-            Urine: ['urine', 'urinate', 'urinated', 'pee', 'wet']
-        };
-
-        function getEventType(message) {
-            const lowerMessage = message.toLowerCase();
-            for (const type in keywords) {
-                if (keywords[type].some(keyword => new RegExp(`\\b${keyword}\\b`).test(lowerMessage))) {
-                    return type;
-                }
+    function getEventType(message) {
+        const lowerMessage = message.toLowerCase();
+        for (const type in keywords) {
+            if (keywords[type].some(keyword => new RegExp(`\\b${keyword}\\b`).test(lowerMessage))) {
+                return type;
             }
-            return null;
         }
+        return null;
+    }
+
+    function formatTimeSince(date) {
+        if (!date) return 'N/A';
+        const seconds = Math.floor((new Date() - date) / 1000);
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + " years ago";
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + " months ago";
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + " days ago";
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + "h " + Math.floor((seconds % 3600) / 60) + "m ago";
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + "m ago";
+        return Math.floor(seconds) + "s ago";
+    }
+
+    function updateSummary(allRecords) {
+        const summaryContainers = document.querySelectorAll('.summary-container');
+        if (summaryContainers.length === 0) return;
 
         // --- 24-Hour Summary ---
         const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -111,11 +126,41 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        summaryContainer.innerHTML = `
-            <span><strong>Feeds:</strong> ${summaryCounts.Feed}</span> |
-            <span><strong>Poo:</strong> ${summaryCounts.Poo}</span> |
-            <span><strong>Urine:</strong> ${summaryCounts.Urine}</span>
+        // --- Time Since Last Event ---
+        const lastEvents = { Feed: null, Poo: null, Urine: null };
+        const sortedRecords = [...allRecords].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        for (const record of sortedRecords) {
+            const eventType = getEventType(record.message);
+            if (eventType && !lastEvents[eventType]) {
+                lastEvents[eventType] = new Date(record.timestamp);
+            }
+            if (lastEvents.Feed && lastEvents.Poo && lastEvents.Urine) break;
+        }
+
+        const summaryHTML = `
+            <div>
+                <span><strong>Feeds (24h):</strong> ${summaryCounts.Feed}</span> |
+                <span><strong>Poo (24h):</strong> ${summaryCounts.Poo}</span> |
+                <span><strong>Urine (24h):</strong> ${summaryCounts.Urine}</span>
+            </div>
+            <div>
+                <span><strong>Last Feed:</strong> ${formatTimeSince(lastEvents.Feed)}</span> |
+                <span><strong>Last Poo:</strong> ${formatTimeSince(lastEvents.Poo)}</span> |
+                <span><strong>Last Urine:</strong> ${formatTimeSince(lastEvents.Urine)}</span>
+            </div>
         `;
+
+        summaryContainers.forEach(container => {
+            container.innerHTML = summaryHTML;
+        });
+    }
+
+    function generateReport() {
+        const allRecords = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
+        const dailyTableBody = document.getElementById('daily-table-body');
+
+        updateSummary(allRecords);
 
         // --- Daily Breakdown ---
         const dailyData = {};
@@ -141,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = dailyData[date];
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${new Date(date).toLocaleDateString()}</td>
+                <td>${date}</td>
                 <td>${data.Feed}</td>
                 <td>${data.Poo}</td>
                 <td>${data.Urine}</td>
@@ -164,11 +209,14 @@ document.addEventListener('DOMContentLoaded', () => {
             tabPanel.classList.add('active');
         }
 
-        // Load data if switching to records or report tab
-        if (tabId === 'records') {
+        // Load data if switching to a tab
+        const allRecords = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
+        if (tabId === 'log') {
+            updateSummary(allRecords);
+        } else if (tabId === 'records') {
             loadAndDisplayRecords();
         } else if (tabId === 'report') {
-            generateReport();
+            generateReport(); // this already calls updateSummary
         }
     }
 
@@ -219,8 +267,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     filterButton.addEventListener('click', () => {
-        const startDate = startDateInput.value ? new Date(startDateInput.value) : null;
-        const endDate = endDateInput.value ? new Date(endDateInput.value) : null;
+        const startDate = startDateInput.value ? new Date(startDateInput.value.replace(/-/g, '\/')) : null;
+        const endDate = endDateInput.value ? new Date(endDateInput.value.replace(/-/g, '\/')) : null;
         if (endDate) {
             endDate.setHours(23, 59, 59, 999); // Set to end of day
         }
@@ -295,4 +343,8 @@ document.addEventListener('DOMContentLoaded', () => {
         voiceLogButton.disabled = true;
         showSuccessMessage('Voice recognition not supported.');
     }
+
+    // --- Initial Load ---
+    const initialRecords = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
+    updateSummary(initialRecords);
 });
