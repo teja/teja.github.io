@@ -101,16 +101,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!date) return 'N/A';
         const seconds = Math.floor((new Date() - date) / 1000);
         let interval = seconds / 31536000;
-        if (interval > 1) return Math.floor(interval) + " years ago";
+        if (interval > 1) return Math.floor(interval) + " years";
         interval = seconds / 2592000;
-        if (interval > 1) return Math.floor(interval) + " months ago";
+        if (interval > 1) return Math.floor(interval) + " months";
         interval = seconds / 86400;
-        if (interval > 1) return Math.floor(interval) + " days ago";
+        if (interval > 1) return Math.floor(interval) + " days";
         interval = seconds / 3600;
-        if (interval > 1) return Math.floor(interval) + "h " + Math.floor((seconds % 3600) / 60) + "m ago";
+        if (interval > 1) return Math.floor(interval) + "h " + Math.floor((seconds % 3600) / 60) + "m";
         interval = seconds / 60;
-        if (interval > 1) return Math.floor(interval) + "m ago";
-        return Math.floor(seconds) + "s ago";
+        if (interval > 1) return Math.floor(interval) + "m";
+        return Math.floor(seconds) + "s";
     }
 
     function updateSummary(allRecords) {
@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td>${summaryCounts.Urine}</td>
                     </tr>
                     <tr>
-                        <td><strong>Last Event</strong></td>
+                        <td><strong>Last Event (ago)</strong></td>
                         <td>${formatTimeSince(lastEvents.Feed)}</td>
                         <td>${formatTimeSince(lastEvents.Poo)}</td>
                         <td>${formatTimeSince(lastEvents.Urine)}</td>

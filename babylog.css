@@ -143,6 +143,31 @@ button {
     background-color: #f2f2f2;
 }
 
+.summary-details {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+}
+
+.summary-details summary {
+    font-weight: bold;
+    cursor: pointer;
+    padding: 5px 0;
+}
+
+.summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.summary-table th, .summary-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
 #success-message {
     position: fixed;
     bottom: 20px;
