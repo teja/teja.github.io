@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let records = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
         records.push(record);
         localStorage.setItem('babyLogRecords', JSON.stringify(records));
+        updateSummary(records);
     }
 
     function parseTimeFromTranscript(transcript) {
@@ -139,16 +140,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const summaryHTML = `
-            <div>
-                <span><strong>Feeds (24h):</strong> ${summaryCounts.Feed}</span> |
-                <span><strong>Poo (24h):</strong> ${summaryCounts.Poo}</span> |
-                <span><strong>Urine (24h):</strong> ${summaryCounts.Urine}</span>
-            </div>
-            <div>
-                <span><strong>Last Feed:</strong> ${formatTimeSince(lastEvents.Feed)}</span> |
-                <span><strong>Last Poo:</strong> ${formatTimeSince(lastEvents.Poo)}</span> |
-                <span><strong>Last Urine:</strong> ${formatTimeSince(lastEvents.Urine)}</span>
-            </div>
+            <table class="summary-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Feed</th>
+                        <th>Poo</th>
+                        <th>Urine</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Count (24h)</strong></td>
+                        <td>${summaryCounts.Feed}</td>
+                        <td>${summaryCounts.Poo}</td>
+                        <td>${summaryCounts.Urine}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Last Event</strong></td>
+                        <td>${formatTimeSince(lastEvents.Feed)}</td>
+                        <td>${formatTimeSince(lastEvents.Poo)}</td>
+                        <td>${formatTimeSince(lastEvents.Urine)}</td>
+                    </tr>
+                </tbody>
+            </table>
         `;
 
         summaryContainers.forEach(container => {
@@ -159,8 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function generateReport() {
         const allRecords = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
         const dailyTableBody = document.getElementById('daily-table-body');
-
-        updateSummary(allRecords);
 
         // --- Daily Breakdown ---
         const dailyData = {};
@@ -210,13 +223,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Load data if switching to a tab
-        const allRecords = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
-        if (tabId === 'log') {
-            updateSummary(allRecords);
-        } else if (tabId === 'records') {
+        if (tabId === 'records') {
             loadAndDisplayRecords();
         } else if (tabId === 'report') {
-            generateReport(); // this already calls updateSummary
+            generateReport();
         }
     }
 

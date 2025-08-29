@@ -10,6 +10,13 @@
     <div class="app-container">
         <h1>Baby Log</h1>
 
+        <details class="summary-details" open>
+            <summary>Summary</summary>
+            <div id="summary-container" class="summary-container">
+                <!-- Summary content will be injected here -->
+            </div>
+        </details>
+
         <div class="tab-bar">
             <button class="tab-button active" data-tab="log">Log</button>
             <button class="tab-button" data-tab="records">Records</button>
@@ -19,7 +26,6 @@
         <div class="tab-content">
             <!-- Log Tab -->
             <div id="log-tab" class="tab-panel active">
-                <div id="log-summary-container" class="summary-container"></div>
                 <div class="log-controls">
                     <button id="voice-log-button">Log with Voice</button>
                 </div>
@@ -74,12 +80,6 @@
             <!-- Report Tab -->
             <div id="report-tab" class="tab-panel">
                 <h2>Reports</h2>
-                <div id="report-summary">
-                    <h3>Last 24 Hours</h3>
-                    <div id="summary-container" class="summary-container">
-                        <!-- Summary stats will be injected here -->
-                    </div>
-                </div>
                 <div id="report-daily">
                     <h3>Daily Breakdown</h3>
                     <table id="daily-table">
