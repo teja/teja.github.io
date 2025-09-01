@@ -29,6 +29,11 @@
                 <div class="log-controls">
                     <button id="voice-log-button">Log with Voice</button>
                 </div>
+                <div id="confirmation-area" style="display: none;">
+                    <p id="transcribed-text"></p>
+                    <button id="confirm-button">Confirm</button>
+                    <button id="try-again-button">Try Again</button>
+                </div>
                 <div id="standard-log-area">
                     <h2>Standard Log</h2>
                     <form id="standard-log-form">
@@ -56,6 +61,13 @@
                             <input type="date" id="custom-date" name="custom-date">
                             <label for="custom-time">Custom Time:</label>
                             <input type="time" id="custom-time" name="custom-time">
+                        </div>
+                        <div class="form-group">
+                            <label for="note-input">Optional Note:</label>
+                            <div class="note-input-wrapper">
+                                <textarea id="note-input" rows="2"></textarea>
+                                <button type="button" id="note-voice-button" class="voice-input-button">🎤</button>
+                            </div>
                         </div>
                         <button type="submit" id="save-log-button">Save Log</button>
                     </form>
@@ -103,11 +115,6 @@
     </div>
 
     <!-- Global Overlays -->
-    <div id="confirmation-area" style="display: none;">
-        <p id="transcribed-text"></p>
-        <button id="confirm-button">Confirm</button>
-        <button id="try-again-button">Try Again</button>
-    </div>
     <div id="success-message" style="display: none;"></div>
 
     <script src="babylog.js"></script>

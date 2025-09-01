@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const endDateInput = document.getElementById('end-date');
     const exportRecordsButton = document.getElementById('export-records-button');
     const exportReportButton = document.getElementById('export-report-button');
+    const noteInput = document.getElementById('note-input');
+    const noteVoiceButton = document.getElementById('note-voice-button');
 
     // --- State Variables ---
     let recognition;
@@ -35,8 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     }
 
-    function saveRecord(message, timestamp) {
-        const record = { message, timestamp };
+    function saveRecord(message, timestamp, note = '') {
+        const record = { message, timestamp, note };
         let records = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
         records.push(record);
         localStorage.setItem('babyLogRecords', JSON.stringify(records));
@@ -46,6 +48,30 @@ document.addEventListener('DOMContentLoaded', () => {
     function parseTimeFromTranscript(transcript) {
         const now = new Date();
         transcript = transcript.toLowerCase();
+
+        // Check for explicit time like "4:00" or "4:00 pm"
+        let timeMatch = transcript.match(/\b(\d{1,2}):(\d{2})\s*(am|pm)?/);
+        if (timeMatch) {
+            let hour = parseInt(timeMatch[1], 10);
+            const minute = parseInt(timeMatch[2], 10);
+            const period = timeMatch[3];
+
+            if (period === 'pm' && hour < 12) {
+                hour += 12;
+            } else if (period === 'am' && hour === 12) { // Midnight case
+                hour = 0;
+            }
+
+            const candidateDate = new Date();
+            candidateDate.setHours(hour, minute, 0, 0);
+
+            // If the time is in the future, assume it was yesterday
+            if (candidateDate > now) {
+                candidateDate.setDate(candidateDate.getDate() - 1);
+            }
+            return candidateDate;
+        }
+
         let match = transcript.match(/(\d+)\s+minutes? ago/);
         if (match) { now.setMinutes(now.getMinutes() - parseInt(match[1], 10)); return now; }
         match = transcript.match(/(\d+)\s+hours? ago/);
@@ -66,12 +92,29 @@ document.addEventListener('DOMContentLoaded', () => {
         records.forEach(record => {
             const recordElement = document.createElement('div');
             recordElement.classList.add('record');
+            const contentWrapper = document.createElement('div');
             const messageElement = document.createElement('p');
             messageElement.textContent = record.message;
+            contentWrapper.appendChild(messageElement);
+
+            if (record.note) {
+                const noteElement = document.createElement('p');
+                noteElement.classList.add('record-note');
+                noteElement.textContent = record.note;
+                contentWrapper.appendChild(noteElement);
+            }
+            recordElement.appendChild(contentWrapper);
+
             const timeElement = document.createElement('small');
             timeElement.textContent = new Date(record.timestamp).toLocaleString();
-            recordElement.appendChild(messageElement);
             recordElement.appendChild(timeElement);
+
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.classList.add('delete-record-button');
+            deleteButton.dataset.timestamp = record.timestamp;
+            recordElement.appendChild(deleteButton);
+
             recordsContainer.appendChild(recordElement);
         });
     }
@@ -264,6 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const eventType = document.querySelector('input[name="event-type"]:checked').value;
         const timeOffset = document.querySelector('input[name="time-offset"]:checked').value;
+        const note = noteInput.value.trim();
 
         let timestamp;
         if (timeOffset === 'custom') {
@@ -279,9 +323,10 @@ document.addEventListener('DOMContentLoaded', () => {
             now.setMinutes(now.getMinutes() - parseInt(timeOffset, 10));
             timestamp = now.toISOString();
         }
-        saveRecord(eventType, timestamp);
+        saveRecord(eventType, timestamp, note);
         showSuccessMessage('Standard log saved!');
         standardLogForm.reset();
+        noteInput.value = '';
         customTimeGroup.style.display = 'none';
     });
 
@@ -307,6 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Voice Recognition
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
+        // Main voice log recognition
         recognition = new SpeechRecognition();
         recognition.continuous = false;
         recognition.interimResults = true;
@@ -349,7 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (message) {
                 const parsedDate = parseTimeFromTranscript(message);
                 const timestamp = (parsedDate || new Date()).toISOString();
-                saveRecord(message, timestamp);
+                saveRecord(message, timestamp, ''); // No note for voice logs yet
                 showSuccessMessage('Voice log saved!');
                 confirmationArea.style.display = 'none';
                 final_transcript = '';
@@ -359,6 +405,30 @@ document.addEventListener('DOMContentLoaded', () => {
         tryAgainButton.addEventListener('click', () => {
             confirmationArea.style.display = 'none';
             final_transcript = '';
+        });
+
+        // Note field voice input recognition
+        const noteRecognition = new SpeechRecognition();
+        noteRecognition.continuous = false;
+        noteRecognition.interimResults = false; // We just want the final result
+
+        noteRecognition.onstart = () => {
+            noteVoiceButton.textContent = '...';
+            noteVoiceButton.disabled = true;
+        };
+
+        noteRecognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            noteInput.value += transcript; // Append to existing text
+        };
+
+        noteRecognition.onend = () => {
+            noteVoiceButton.textContent = '🎤';
+            noteVoiceButton.disabled = false;
+        };
+
+        noteVoiceButton.addEventListener('click', () => {
+            noteRecognition.start();
         });
 
     } else {
@@ -413,6 +483,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         downloadCSV(csvContent, 'babylog-records.csv');
     }
+
+    recordsContainer.addEventListener('click', (event) => {
+        if (event.target.classList.contains('delete-record-button')) {
+            const timestampToDelete = event.target.dataset.timestamp;
+            if (confirm('Are you sure you want to delete this record?')) {
+                let records = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
+                const updatedRecords = records.filter(record => record.timestamp !== timestampToDelete);
+                localStorage.setItem('babyLogRecords', JSON.stringify(updatedRecords));
+                loadAndDisplayRecords();
+                updateSummary(updatedRecords);
+                showSuccessMessage('Record deleted.');
+            }
+        }
+    });
 
     // --- Initial Load ---
     const initialRecords = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
