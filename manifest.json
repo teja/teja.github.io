@@ -1,7 +1,8 @@
 {
   "name": "Baby Log",
   "short_name": "BabyLog",
-  "start_url": ".",
+  "start_url": "/babylog.html",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#007bff",
