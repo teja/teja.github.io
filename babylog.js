@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const recordsArea = document.getElementById('records-area');
     const recordsContainer = document.getElementById('records-container');
     const successMessage = document.getElementById('success-message');
+    const saveOverlay = document.getElementById('save-overlay');
     const filterButton = document.getElementById('filter-button');
     const startDateInput = document.getElementById('start-date');
     const endDateInput = document.getElementById('end-date');
@@ -30,11 +31,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Functions ---
     function showSuccessMessage(message) {
-        successMessage.textContent = message;
-        successMessage.style.display = 'block';
+        document.body.classList.add('overlay-active');
+        saveOverlay.classList.add('active');
+
         setTimeout(() => {
-            successMessage.style.display = 'none';
-        }, 3000);
+            document.body.classList.remove('overlay-active');
+            saveOverlay.classList.remove('active');
+        }, 500);
     }
 
     function saveRecord(message, timestamp, note = '') {
