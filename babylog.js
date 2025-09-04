@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
+    const mainContent = document.getElementById('main-content');
     const voiceLogButton = document.getElementById('voice-log-button');
     const standardLogForm = document.getElementById('standard-log-form');
     // Tab Elements
@@ -20,6 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterButton = document.getElementById('filter-button');
     const startDateInput = document.getElementById('start-date');
     const endDateInput = document.getElementById('end-date');
+    const searchInput = document.getElementById('search-input');
+    const quickFilters = document.querySelector('.quick-filters');
     const exportRecordsButton = document.getElementById('export-records-button');
     const exportReportButton = document.getElementById('export-report-button');
     const noteInput = document.getElementById('note-input');
@@ -31,11 +34,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Functions ---
     function showSuccessMessage(message) {
-        document.body.classList.add('overlay-active');
+        mainContent.classList.add('blur-it');
         saveOverlay.classList.add('active');
 
         setTimeout(() => {
-            document.body.classList.remove('overlay-active');
+            mainContent.classList.remove('blur-it');
             saveOverlay.classList.remove('active');
         }, 500);
     }
@@ -101,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
             contentWrapper.appendChild(messageElement);
 
             if (record.note) {
-                const noteElement = document.createElement('p');
+                const noteElement = document.createElement('textarea');
                 noteElement.classList.add('record-note');
                 noteElement.textContent = record.note;
                 contentWrapper.appendChild(noteElement);
@@ -112,11 +115,22 @@ document.addEventListener('DOMContentLoaded', () => {
             timeElement.textContent = new Date(record.timestamp).toLocaleString();
             recordElement.appendChild(timeElement);
 
+            const actionWrapper = document.createElement('div');
+            actionWrapper.classList.add('record-actions');
+
+            const saveNoteButton = document.createElement('button');
+            saveNoteButton.textContent = 'Save Note';
+            saveNoteButton.classList.add('save-note-button');
+            saveNoteButton.dataset.timestamp = record.timestamp;
+            actionWrapper.appendChild(saveNoteButton)
+
             const deleteButton = document.createElement('button');
             deleteButton.textContent = 'Delete';
             deleteButton.classList.add('delete-record-button');
             deleteButton.dataset.timestamp = record.timestamp;
-            recordElement.appendChild(deleteButton);
+            actionWrapper.appendChild(deleteButton);
+
+            recordElement.appendChild(actionWrapper);
 
             recordsContainer.appendChild(recordElement);
         });
@@ -336,20 +350,78 @@ document.addEventListener('DOMContentLoaded', () => {
     exportRecordsButton.addEventListener('click', exportRecordsToCSV);
     exportReportButton.addEventListener('click', exportReportToCSV);
 
-    filterButton.addEventListener('click', () => {
+    function applyFilters() {
         const startDate = startDateInput.value ? new Date(startDateInput.value.replace(/-/g, '\/')) : null;
         const endDate = endDateInput.value ? new Date(endDateInput.value.replace(/-/g, '\/')) : null;
+        const searchTerm = searchInput.value.toLowerCase();
+
+        if (startDate) {
+            startDate.setHours(0, 0, 0, 0); // Set to start of day
+        }
         if (endDate) {
             endDate.setHours(23, 59, 59, 999); // Set to end of day
         }
+
         const allRecords = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
         const filteredRecords = allRecords.filter(record => {
             const recordDate = new Date(record.timestamp);
+
+            // Date filtering
             if (startDate && recordDate < startDate) return false;
             if (endDate && recordDate > endDate) return false;
+
+            // Search term filtering
+            if (searchTerm) {
+                const messageMatch = record.message.toLowerCase().includes(searchTerm);
+                const noteMatch = record.note && record.note.toLowerCase().includes(searchTerm);
+                if (!messageMatch && !noteMatch) {
+                    return false;
+                }
+            }
+
             return true;
         });
         displayRecords(filteredRecords);
+    }
+
+    filterButton.addEventListener('click', applyFilters);
+
+    quickFilters.addEventListener('click', (event) => {
+        if (event.target.tagName === 'BUTTON') {
+            const range = event.target.dataset.range;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            let start, end;
+            switch (range) {
+                case 'today':
+                    start = end = today;
+                    break;
+                case 'yesterday':
+                    start = new Date(today);
+                    start.setDate(today.getDate() - 1);
+                    end = start;
+                    break;
+                case '7days':
+                    start = new Date(today);
+                    start.setDate(today.getDate() - 6);
+                    end = today;
+                    break;
+                case '30days':
+                    start = new Date(today);
+                    start.setDate(today.getDate() - 29);
+                    end = today;
+                    break;
+            }
+
+            // Format to YYYY-MM-DD
+            const formatDate = (date) => date.toISOString().split('T')[0];
+
+            startDateInput.value = formatDate(start);
+            endDateInput.value = formatDate(end);
+
+            applyFilters();
+        }
     });
 
     // Voice Recognition
@@ -497,6 +569,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 loadAndDisplayRecords();
                 updateSummary(updatedRecords);
                 showSuccessMessage('Record deleted.');
+            }
+        }
+
+        if (event.target.classList.contains('save-note-button')) {
+            const timestampToUpdate = event.target.dataset.timestamp;
+            const recordElement = event.target.closest('.record');
+            const noteTextarea = recordElement.querySelector('.record-note');
+            const newNote = noteTextarea.value;
+
+            let records = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
+            const recordIndex = records.findIndex(record => record.timestamp === timestampToUpdate);
+
+            if (recordIndex > -1) {
+                records[recordIndex].note = newNote;
+                localStorage.setItem('babyLogRecords', JSON.stringify(records));
+                showSuccessMessage('Note saved!');
+                // No need to reload records, as the textarea already has the new value.
+                // You might want to provide some visual feedback, though.
             }
         }
     });
