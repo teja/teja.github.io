@@ -34,18 +34,32 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event: serves requests from the cache first, falling back to the network.
+// Fetch event: serves requests from the network first, falling back to the cache.
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request)
+    fetch(event.request)
       .then((response) => {
-        // Cache hit - return response
-        if (response) {
+        // Check if we received a valid response
+        if (!response || response.status !== 200 || response.type !== 'basic') {
           return response;
         }
-        // Not in cache - fetch from network
-        return fetch(event.request);
-      }
-    )
+
+        // IMPORTANT: Clone the response. A response is a stream
+        // and because we want the browser to consume the response
+        // as well as the cache consuming the response, we need
+        // to clone it so we have two streams.
+        var responseToCache = response.clone();
+
+        caches.open(CACHE_NAME)
+          .then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+
+        return response;
+      })
+      .catch(function() {
+        // If the network request fails, try to get the response from the cache.
+        return caches.match(event.request);
+      })
   );
 });
