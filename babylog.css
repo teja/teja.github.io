@@ -215,7 +215,7 @@ button {
     text-align: left;
 }
 
-body.overlay-active {
+.app-container.blur {
     filter: blur(5px);
 }
 

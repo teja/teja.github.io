@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
+    const appContainer = document.querySelector('.app-container');
     const voiceLogButton = document.getElementById('voice-log-button');
     const standardLogForm = document.getElementById('standard-log-form');
     // Tab Elements
@@ -31,11 +32,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Functions ---
     function showSuccessMessage(message) {
-        document.body.classList.add('overlay-active');
+        appContainer.classList.add('blur');
         saveOverlay.classList.add('active');
 
         setTimeout(() => {
-            document.body.classList.remove('overlay-active');
+            appContainer.classList.remove('blur');
             saveOverlay.classList.remove('active');
         }, 500);
     }
