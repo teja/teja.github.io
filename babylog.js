@@ -200,13 +200,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 </thead>
                 <tbody>
                     <tr>
-                        <td><strong>Count (24h)</strong></td>
+                        <td><strong>In last 24 hrs</strong></td>
                         <td>${summaryCounts.Feed}</td>
                         <td>${summaryCounts.Poo}</td>
                         <td>${summaryCounts.Urine}</td>
                     </tr>
                     <tr>
-                        <td><strong>Last Event (ago)</strong></td>
+                        <td><strong>Last time was..</strong></td>
                         <td>${formatTimeSince(lastEvents.Feed)}</td>
                         <td>${formatTimeSince(lastEvents.Poo)}</td>
                         <td>${formatTimeSince(lastEvents.Urine)}</td>
