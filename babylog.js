@@ -41,6 +41,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 500);
     }
 
+    function playAnimalSound(animal) {
+        const audio = new Audio(`https://raw.githubusercontent.com/earthspecies/library/main/${animal.toLowerCase()}/sound.mp3`);
+        audio.play();
+    }
+
     function saveRecord(message, timestamp, note = '') {
         const record = { message, timestamp, note };
         let records = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
@@ -517,5 +522,62 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log('ServiceWorker registration failed: ', error);
                 });
         });
+    }
+
+    // --- Animal Sounds ---
+    const animalSoundsButton = document.getElementById('animal-sounds-button');
+    const animalSoundsVideo = document.getElementById('animal-sounds-video');
+    const animalSoundsOverlay = document.getElementById('animal-sounds-overlay');
+    let stream;
+    let model;
+
+    async function startCamera() {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            animalSoundsVideo.srcObject = stream;
+            animalSoundsButton.textContent = 'Stop Camera';
+            detectObjects();
+        } catch (error) {
+            console.error('Error accessing camera:', error);
+        }
+    }
+
+    function stopCamera() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            animalSoundsVideo.srcObject = null;
+            animalSoundsButton.textContent = 'Start Camera';
+        }
+    }
+
+    animalSoundsButton.addEventListener('click', () => {
+        if (animalSoundsVideo.srcObject) {
+            stopCamera();
+        } else {
+            startCamera();
+        }
+    });
+
+    const animalClasses = ['bird', 'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe'];
+
+    async function detectObjects() {
+        if (!model) {
+            model = await cocoSsd.load();
+        }
+
+        if (animalSoundsVideo.srcObject) {
+            const predictions = await model.detect(animalSoundsVideo);
+            const animals = predictions.filter(prediction => animalClasses.includes(prediction.class));
+
+            if (animals.length > 0) {
+                const animal = animals[0];
+                animalSoundsOverlay.textContent = animal.class;
+                playAnimalSound(animal.class);
+            } else {
+                animalSoundsOverlay.textContent = '';
+            }
+
+            requestAnimationFrame(detectObjects);
+        }
     }
 });

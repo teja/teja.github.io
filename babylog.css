@@ -289,3 +289,25 @@ button {
     font-size: 24px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
+
+.camera-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+#animal-sounds-video {
+    width: 100%;
+    border-radius: 5px;
+}
+
+.overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
