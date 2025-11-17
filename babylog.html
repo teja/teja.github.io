@@ -31,6 +31,7 @@
             <button class="tab-button active" data-tab="log">Log</button>
             <button class="tab-button" data-tab="records">Records</button>
             <button class="tab-button" data-tab="report">Report</button>
+            <button class="tab-button" data-tab="animal-sounds">Animal Sounds</button>
         </div>
 
         <div class="tab-content">
@@ -121,6 +122,16 @@
                     </table>
                 </div>
             </div>
+
+            <!-- Animal Sounds Tab -->
+            <div id="animal-sounds-tab" class="tab-panel">
+                <h2>Animal Sounds</h2>
+                <div class="camera-container">
+                    <video id="animal-sounds-video" autoplay playsinline></video>
+                    <div id="animal-sounds-overlay" class="overlay"></div>
+                </div>
+                <button id="animal-sounds-button">Start Camera</button>
+            </div>
         </div>
     </div>
 
@@ -131,6 +142,8 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
     <script src="babylog.js"></script>
 </body>
 </html>
