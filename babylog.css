@@ -384,3 +384,9 @@ button {
 .event-manage-item:last-child {
     border-bottom: none;
 }
+
+.modal-instruction {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 10px;
+}
