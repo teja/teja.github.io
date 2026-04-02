@@ -31,7 +31,7 @@
             <button class="tab-button active" data-tab="log">Log</button>
             <button class="tab-button" data-tab="records">Records</button>
             <button class="tab-button" data-tab="report">Report</button>
-            <button class="tab-button" data-tab="animal-sounds">Animal Sounds</button>
+            <button class="tab-button" data-tab="animal-sounds" style="display: none;">Animal Sounds</button>
         </div>
 
         <div class="tab-content">
@@ -46,14 +46,15 @@
                     <button id="try-again-button">Try Again</button>
                 </div>
                 <div id="standard-log-area">
-                    <h2>Standard Log</h2>
+                    <div class="section-header">
+                        <h2>Standard Log</h2>
+                        <button id="customize-events-button" class="icon-button" type="button">⚙️</button>
+                    </div>
                     <form id="standard-log-form">
                         <div class="form-group">
                             <label>Event:</label>
                             <div class="radio-group" id="event-type-group">
-                                <input type="radio" id="event-feed" name="event-type" value="Feed" checked><label for="event-feed">Feed</label>
-                                <input type="radio" id="event-poo" name="event-type" value="Poo"><label for="event-poo">Poo</label>
-                                <input type="radio" id="event-urine" name="event-type" value="Urine"><label for="event-urine">Urine</label>
+                                <!-- Dynamic event buttons will be injected here -->
                             </div>
                         </div>
                         <div class="form-group">
@@ -109,11 +110,9 @@
                     <button id="export-report-button">Export to CSV</button>
                     <table id="daily-table">
                         <thead>
-                            <tr>
+                            <tr id="daily-table-header-row">
                                 <th>Date</th>
-                                <th>Feeds</th>
-                                <th>Poo</th>
-                                <th>Urine</th>
+                                <!-- Dynamic headers will be injected here -->
                             </tr>
                         </thead>
                         <tbody id="daily-table-body">
@@ -124,7 +123,7 @@
             </div>
 
             <!-- Animal Sounds Tab -->
-            <div id="animal-sounds-tab" class="tab-panel">
+            <div id="animal-sounds-tab" class="tab-panel" style="display: none;">
                 <h2>Animal Sounds</h2>
                 <div class="camera-container">
                     <video id="animal-sounds-video" autoplay playsinline></video>
@@ -136,6 +135,25 @@
     </div>
 
     <!-- Global Overlays -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h3>Customize Events</h3>
+            <div id="event-management-list"></div>
+            <hr>
+            <h4>Add New Event</h4>
+            <form id="add-event-form">
+                <div class="form-group">
+                    <input type="text" id="new-event-name" placeholder="Event Name (e.g. Sleep)" required>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="new-event-keywords" placeholder="Keywords (comma separated)" required>
+                </div>
+                <button type="submit" id="add-event-button">Add Event</button>
+            </form>
+        </div>
+    </div>
+
     <div id="save-overlay">
         <div class="overlay-content">
             Log Saved!

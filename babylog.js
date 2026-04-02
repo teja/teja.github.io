@@ -26,7 +26,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const noteInput = document.getElementById('note-input');
     const noteVoiceButton = document.getElementById('note-voice-button');
 
+    // Settings Elements
+    const customizeEventsButton = document.getElementById('customize-events-button');
+    const settingsModal = document.getElementById('settings-modal');
+    const closeButton = document.querySelector('.close-button');
+    const eventManagementList = document.getElementById('event-management-list');
+    const addEventForm = document.getElementById('add-event-form');
+    const newEventNameInput = document.getElementById('new-event-name');
+    const newEventKeywordsInput = document.getElementById('new-event-keywords');
+    const eventTypeGroup = document.getElementById('event-type-group');
+    const dailyTableHeaderRow = document.getElementById('daily-table-header-row');
+
     // --- State Variables ---
+    const DEFAULT_EVENT_CONFIG = {
+        Feed: { keywords: ['feed', 'food', 'eat', 'ate', 'nurse', 'nursing', 'bottle', 'fed'], enabled: true },
+        Poo: { keywords: ['poo', 'poop', 'pooped', 'soiled', 'bowel movement'], enabled: true },
+        Urine: { keywords: ['urine', 'urinate', 'urinated', 'pee', 'wet'], enabled: true },
+        Sleep: { keywords: ['sleep', 'slept', 'nap', 'napped', 'bedtime'], enabled: true }
+    };
+
+    let eventConfig = loadEventConfig();
+
     let recognition;
     let final_transcript = '';
 
@@ -133,20 +153,75 @@ document.addEventListener('DOMContentLoaded', () => {
         displayRecords(records);
     }
 
-    const keywords = {
-        Feed: ['feed', 'food', 'eat', 'ate', 'nurse', 'nursing', 'bottle', 'fed'],
-        Poo: ['poo', 'poop', 'pooped', 'soiled', 'bowel movement'],
-        Urine: ['urine', 'urinate', 'urinated', 'pee', 'wet']
-    };
+    // --- Configuration Logic ---
+    function loadEventConfig() {
+        const savedConfig = localStorage.getItem('babyLogEventConfig');
+        if (savedConfig) {
+            return JSON.parse(savedConfig);
+        }
+        return DEFAULT_EVENT_CONFIG;
+    }
+
+    function saveEventConfig() {
+        localStorage.setItem('babyLogEventConfig', JSON.stringify(eventConfig));
+    }
+
+    function getEnabledEvents() {
+        return Object.keys(eventConfig).filter(type => eventConfig[type].enabled);
+    }
 
     function getEventType(message) {
         const lowerMessage = message.toLowerCase();
-        for (const type in keywords) {
-            if (keywords[type].some(keyword => new RegExp(`\\b${keyword}\\b`).test(lowerMessage))) {
+        for (const type in eventConfig) {
+            if (eventConfig[type].keywords.some(keyword => new RegExp(`\\b${keyword}\\b`).test(lowerMessage))) {
                 return type;
             }
         }
         return null;
+    }
+
+    // --- Dynamic UI Rendering ---
+    function renderEventButtons() {
+        const enabledEvents = getEnabledEvents();
+        eventTypeGroup.innerHTML = '';
+        enabledEvents.forEach((type, index) => {
+            const input = document.createElement('input');
+            input.type = 'radio';
+            input.id = `event-${type.toLowerCase()}`;
+            input.name = 'event-type';
+            input.value = type;
+            if (index === 0) input.checked = true;
+
+            const label = document.createElement('label');
+            label.htmlFor = `event-${type.toLowerCase()}`;
+            label.textContent = type;
+
+            eventTypeGroup.appendChild(input);
+            eventTypeGroup.appendChild(label);
+        });
+    }
+
+    function renderReportHeaders() {
+        const enabledEvents = getEnabledEvents();
+        dailyTableHeaderRow.innerHTML = '<th>Date</th>';
+        enabledEvents.forEach(type => {
+            const th = document.createElement('th');
+            th.textContent = type === 'Feed' ? 'Feeds' : type; // Special case for Feed as Feeds
+            dailyTableHeaderRow.appendChild(th);
+        });
+    }
+
+    function renderSettingsModal() {
+        eventManagementList.innerHTML = '';
+        Object.keys(eventConfig).forEach(type => {
+            const item = document.createElement('div');
+            item.className = 'event-manage-item';
+            item.innerHTML = `
+                <span>${type}</span>
+                <input type="checkbox" data-event="${type}" ${eventConfig[type].enabled ? 'checked' : ''}>
+            `;
+            eventManagementList.appendChild(item);
+        });
     }
 
     function formatTimeSince(date) {
@@ -169,53 +244,49 @@ document.addEventListener('DOMContentLoaded', () => {
         const summaryContainers = document.querySelectorAll('.summary-container');
         if (summaryContainers.length === 0) return;
 
+        const enabledEvents = getEnabledEvents();
+
         // --- 24-Hour Summary ---
         const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
         const recentRecords = allRecords.filter(r => new Date(r.timestamp) > twentyFourHoursAgo);
 
-        const summaryCounts = { Feed: 0, Poo: 0, Urine: 0 };
+        const summaryCounts = {};
+        enabledEvents.forEach(type => summaryCounts[type] = 0);
+
         recentRecords.forEach(record => {
             const eventType = getEventType(record.message);
-            if (eventType) {
+            if (eventType && summaryCounts.hasOwnProperty(eventType)) {
                 summaryCounts[eventType]++;
             }
         });
 
         // --- Time Since Last Event ---
-        const lastEvents = { Feed: null, Poo: null, Urine: null };
+        const lastEvents = {};
+        enabledEvents.forEach(type => lastEvents[type] = null);
+
         const sortedRecords = [...allRecords].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
         for (const record of sortedRecords) {
             const eventType = getEventType(record.message);
-            if (eventType && !lastEvents[eventType]) {
+            if (eventType && lastEvents.hasOwnProperty(eventType) && !lastEvents[eventType]) {
                 lastEvents[eventType] = new Date(record.timestamp);
             }
-            if (lastEvents.Feed && lastEvents.Poo && lastEvents.Urine) break;
+            // Optimization: check if all enabled events found
+            if (enabledEvents.every(type => lastEvents[type] !== null)) break;
         }
+
+        const headerRow = `<tr><th></th>${enabledEvents.map(type => `<th>${type}</th>`).join('')}</tr>`;
+        const countRow = `<tr><td><strong>In last 24 hrs</strong></td>${enabledEvents.map(type => `<td>${summaryCounts[type]}</td>`).join('')}</tr>`;
+        const timeRow = `<tr><td><strong>Last time was..</strong></td>${enabledEvents.map(type => `<td>${formatTimeSince(lastEvents[type])}</td>`).join('')}</tr>`;
 
         const summaryHTML = `
             <table class="summary-table">
                 <thead>
-                    <tr>
-                        <th></th>
-                        <th>Feed</th>
-                        <th>Poo</th>
-                        <th>Urine</th>
-                    </tr>
+                    ${headerRow}
                 </thead>
                 <tbody>
-                    <tr>
-                        <td><strong>In last 24 hrs</strong></td>
-                        <td>${summaryCounts.Feed}</td>
-                        <td>${summaryCounts.Poo}</td>
-                        <td>${summaryCounts.Urine}</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Last time was..</strong></td>
-                        <td>${formatTimeSince(lastEvents.Feed)}</td>
-                        <td>${formatTimeSince(lastEvents.Poo)}</td>
-                        <td>${formatTimeSince(lastEvents.Urine)}</td>
-                    </tr>
+                    ${countRow}
+                    ${timeRow}
                 </tbody>
             </table>
         `;
@@ -230,21 +301,25 @@ document.addEventListener('DOMContentLoaded', () => {
     function generateReport() {
         const allRecords = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
         const dailyTableBody = document.getElementById('daily-table-body');
+        const enabledEvents = getEnabledEvents();
 
         // --- Daily Breakdown ---
         const dailyData = {};
         allRecords.forEach(record => {
             const eventType = getEventType(record.message);
-            if (eventType) {
+            if (eventType && eventConfig[eventType].enabled) {
                 const recordDate = new Date(record.timestamp);
                 const year = recordDate.getFullYear();
                 const month = recordDate.getMonth() + 1;
                 const day = recordDate.getDate();
                 const date = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
                 if (!dailyData[date]) {
-                    dailyData[date] = { Feed: 0, Poo: 0, Urine: 0 };
+                    dailyData[date] = {};
+                    enabledEvents.forEach(type => dailyData[date][type] = 0);
                 }
-                dailyData[date][eventType]++;
+                if (dailyData[date].hasOwnProperty(eventType)) {
+                    dailyData[date][eventType]++;
+                }
             }
         });
 
@@ -259,12 +334,11 @@ document.addEventListener('DOMContentLoaded', () => {
         sortedDates.forEach(date => {
             const data = dailyData[date];
             const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${date}</td>
-                <td>${data.Feed}</td>
-                <td>${data.Poo}</td>
-                <td>${data.Urine}</td>
-            `;
+            let rowHTML = `<td>${date}</td>`;
+            enabledEvents.forEach(type => {
+                rowHTML += `<td>${data[type] || 0}</td>`;
+            });
+            row.innerHTML = rowHTML;
             dailyTableBody.appendChild(row);
         });
     }
@@ -295,6 +369,52 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.target.matches('.tab-button')) {
             const tabId = event.target.dataset.tab;
             switchTab(tabId);
+        }
+    });
+
+    // Settings Modal Listeners
+    customizeEventsButton.addEventListener('click', () => {
+        renderSettingsModal();
+        settingsModal.classList.add('active');
+    });
+
+    closeButton.addEventListener('click', () => {
+        settingsModal.classList.remove('active');
+    });
+
+    window.addEventListener('click', (event) => {
+        if (event.target === settingsModal) {
+            settingsModal.classList.remove('active');
+        }
+    });
+
+    eventManagementList.addEventListener('change', (event) => {
+        if (event.target.matches('input[type="checkbox"]')) {
+            const eventType = event.target.dataset.event;
+            eventConfig[eventType].enabled = event.target.checked;
+            saveEventConfig();
+            renderEventButtons();
+            renderReportHeaders();
+            updateSummary(JSON.parse(localStorage.getItem('babyLogRecords')) || []);
+            if (document.getElementById('report-tab').classList.contains('active')) {
+                generateReport();
+            }
+        }
+    });
+
+    addEventForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const name = newEventNameInput.value.trim();
+        const keywordsInput = newEventKeywordsInput.value.trim();
+        if (name && keywordsInput) {
+            const keywordsArray = keywordsInput.split(',').map(k => k.trim().toLowerCase());
+            eventConfig[name] = { keywords: keywordsArray, enabled: true };
+            saveEventConfig();
+            renderSettingsModal();
+            renderEventButtons();
+            renderReportHeaders();
+            updateSummary(JSON.parse(localStorage.getItem('babyLogRecords')) || []);
+            addEventForm.reset();
         }
     });
 
@@ -461,9 +581,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function exportReportToCSV() {
-        let csvContent = '"Date","Feeds","Poo","Urine"\n';
+        const enabledEvents = getEnabledEvents();
+        let csvContent = '"Date",' + enabledEvents.map(type => `"${type === 'Feed' ? 'Feeds' : type}"`).join(',') + '\n';
+
         dailyDataForExport.forEach(row => {
-            csvContent += `${row.date},${row.Feed},${row.Poo},${row.Urine}\n`;
+            let rowData = [row.date];
+            enabledEvents.forEach(type => {
+                rowData.push(row[type] || 0);
+            });
+            csvContent += rowData.join(',') + '\n';
         });
         downloadCSV(csvContent, 'babylog-report.csv');
     }
@@ -509,6 +635,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Initial Load ---
     const initialRecords = JSON.parse(localStorage.getItem('babyLogRecords')) || [];
+    renderEventButtons();
+    renderReportHeaders();
     updateSummary(initialRecords);
 
     // --- PWA Service Worker Registration ---
